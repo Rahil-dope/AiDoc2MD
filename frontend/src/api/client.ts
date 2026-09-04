@@ -1,4 +1,8 @@
+import * as pdfjsLib from 'pdfjs-dist';
 import { DocumentDetail, DocumentSummary, ReprocessOptions } from '../types';
+
+// Set up pdf.js worker CDN for browser PDF text parsing
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 const LOCAL_STORAGE_KEY = 'aidoc2md_local_documents';
@@ -21,46 +25,39 @@ function saveLocalDocs(docs: DocumentDetail[]): void {
   }
 }
 
-function extractCleanTextFromPdfString(rawStr: string, file: File): string {
-  if (!rawStr) return '';
-  // Check if binary PDF content (%PDF- or raw stream objects)
-  if (rawStr.startsWith('%PDF-') || (rawStr.includes('1 0 obj') && rawStr.includes('/Type'))) {
-    const matches: string[] = [];
-    const textPattern = /\(([^()]{2,500})\)/g;
-    let match;
-    while ((match = textPattern.exec(rawStr)) !== null) {
-      const extracted = match[1].trim();
-      if (
-        extracted.length > 2 &&
-        !extracted.startsWith('/') &&
-        !/^[\x00-\x1F]+$/.test(extracted) &&
-        !/^(Font|Catalog|Pages|Parent|Type|MediaBox|Contents|Resources|ProcSet|Encoding|FlateDecode)$/i.test(extracted)
-      ) {
-        matches.push(extracted);
+// PDF.js Browser-side PDF Text Extractor
+async function extractTextFromPdfArrayBuffer(arrayBuffer: ArrayBuffer, fileName: string): Promise<string> {
+  try {
+    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
+    const pdf = await loadingTask.promise;
+    const pageTexts: string[] = [];
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const strings = textContent.items
+        .map((item: any) => (item.str ? item.str.trim() : ''))
+        .filter(Boolean);
+
+      if (strings.length > 0) {
+        pageTexts.push(`## Page ${pageNum}\n\n` + strings.join(' '));
       }
     }
 
-    if (matches.length > 0) {
-      const uniqueLines = Array.from(new Set(matches));
-      return `# ${file.name.replace(/\.[^/.]+$/, '')}\n\n` + uniqueLines.join('\n\n');
+    if (pageTexts.length > 0) {
+      return `# ${fileName.replace(/\.[^/.]+$/, '')}\n\n` + pageTexts.join('\n\n---\n\n');
     }
-
-    // Fallback: extract readable words
-    const words = rawStr.match(/[A-Za-z0-9_.\-:]{3,}/g) || [];
-    const cleanWords = words.filter(w => !['obj', 'endobj', 'stream', 'endstream', 'xref', 'trailer', 'startxref', 'FlateDecode', 'PDF', 'Type', 'Catalog', 'Pages'].includes(w));
-    if (cleanWords.length > 10) {
-      return `# ${file.name.replace(/\.[^/.]+$/, '')}\n\n` + cleanWords.slice(0, 300).join(' ');
-    }
-
-    return `# ${file.name.replace(/\.[^/.]+$/, '')}\n\nDocument File: ${file.name}\nFile Type: PDF Document\nFile Size: ${(file.size / 1024).toFixed(1)} KB.`;
+  } catch (e) {
+    console.warn('PDF.js text extraction error:', e);
   }
-  return rawStr;
+
+  return `# ${fileName.replace(/\.[^/.]+$/, '')}\n\nDocument File: ${fileName}\nFormat: PDF Document`;
 }
 
 // Client-side Heuristic Normalizer & Token Engine for standalone Vercel previews
 function processClientSideDocument(
   file: File,
-  fileText: string,
+  extractedText: string,
   customInstructions?: string,
   providerPreference?: string
 ): DocumentDetail {
@@ -68,7 +65,7 @@ function processClientSideDocument(
   const docId = 'local-' + Math.random().toString(36).substring(2, 11);
   const now = new Date().toISOString();
 
-  let rawMd = extractCleanTextFromPdfString(fileText, file);
+  let rawMd = extractedText;
   if (!rawMd || rawMd.trim() === '') {
     rawMd = `# ${file.name.replace(/\.[^/.]+$/, '')}\n\nProcessed document file (${fileExt.toUpperCase()}).\nFile Size: ${(file.size / 1024).toFixed(1)} KB.`;
   }
@@ -165,7 +162,7 @@ function processClientSideDocument(
         claude_savings_10k_calls_usd: Number(((savedTokens * 10000 / 1000000) * 3.00).toFixed(2)),
       }
     },
-    ai_provider_used: providerPreference && providerPreference !== 'auto' ? `AiDoc2MD (${providerPreference})` : 'AiDoc2MD Heuristic Engine',
+    ai_provider_used: providerPreference && providerPreference !== 'auto' ? `AiDoc2MD (${providerPreference})` : 'AiDoc2MD PDF.js Engine',
     custom_ai_instructions: customInstructions || null,
     created_at: now,
     updated_at: now,
@@ -190,7 +187,6 @@ class ApiClient {
       if (!res.ok) throw new Error('Health check failed');
       return await res.json();
     } catch {
-      // Standalone mode health response
       return {
         status: 'healthy (standalone demo mode)',
         features: {
@@ -210,7 +206,7 @@ class ApiClient {
         return await res.json();
       }
     } catch {
-      // Ignore network error and fall through to local storage
+      // Ignore network error
     }
     return getLocalDocs();
   }
@@ -222,7 +218,7 @@ class ApiClient {
         return await res.json();
       }
     } catch {
-      // Fall through to local docs
+      // Fallback
     }
 
     const localDoc = getLocalDocs().find((d) => d.id === id);
@@ -239,8 +235,20 @@ class ApiClient {
     },
     onProgress?: (progress: number) => void
   ): Promise<DocumentDetail> {
-    // Read file text asynchronously first for potential fallback
-    const fileText = await this.readTextFromFile(file);
+    let extractedText = '';
+
+    // Handle PDF binary files using PDF.js
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    if (ext === 'pdf' || file.type === 'application/pdf') {
+      try {
+        const arrayBuffer = await this.readArrayBufferFromFile(file);
+        extractedText = await extractTextFromPdfArrayBuffer(arrayBuffer, file.name);
+      } catch (e) {
+        console.warn('PDF ArrayBuffer read failed:', e);
+      }
+    } else {
+      extractedText = await this.readTextFromFile(file);
+    }
 
     // Try primary backend REST API upload
     try {
@@ -253,7 +261,7 @@ class ApiClient {
       const result = await new Promise<DocumentDetail>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${this.baseUrl}/documents/upload/`);
-        xhr.timeout = 10000; // 10s timeout
+        xhr.timeout = 10000;
 
         if (xhr.upload && onProgress) {
           xhr.upload.onprogress = (event) => {
@@ -290,7 +298,7 @@ class ApiClient {
       }
       return processClientSideDocument(
         file,
-        fileText,
+        extractedText,
         options?.custom_ai_instructions,
         options?.preferred_provider
       );
@@ -315,13 +323,13 @@ class ApiClient {
       const doc = docs[targetIdx];
       doc.user_edited_markdown = user_edited_markdown;
       doc.current_markdown = user_edited_markdown;
-      
+
       const words = user_edited_markdown.trim().split(/\s+/).filter(Boolean).length;
       doc.cleaned_tokens = Math.max(1, Math.round(words * 1.2));
       doc.saved_tokens = Math.max(0, doc.raw_tokens - doc.cleaned_tokens);
       doc.token_reduction_pct = doc.raw_tokens > 0 ? Number(((doc.saved_tokens / doc.raw_tokens) * 100).toFixed(1)) : 0;
       doc.updated_at = new Date().toISOString();
-      
+
       docs[targetIdx] = doc;
       saveLocalDocs(docs);
       return doc;
@@ -345,7 +353,7 @@ class ApiClient {
     doc.custom_ai_instructions = options.custom_ai_instructions || doc.custom_ai_instructions;
     doc.ai_provider_used = options.preferred_provider ? `AiDoc2MD (${options.preferred_provider})` : doc.ai_provider_used;
     doc.updated_at = new Date().toISOString();
-    
+
     const docs = getLocalDocs();
     const idx = docs.findIndex((d) => d.id === id);
     if (idx !== -1) {
@@ -381,8 +389,16 @@ class ApiClient {
         resolve(text || '');
       };
       reader.onerror = () => resolve('');
-      // Attempt UTF-8 read
       reader.readAsText(file);
+    });
+  }
+
+  private readArrayBufferFromFile(file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsArrayBuffer(file);
     });
   }
 }
