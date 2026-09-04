@@ -9,9 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/jszip": "^3.4.0",
     "clsx": "^2.1.1",
     "diff": "^7.0.0",
     "framer-motion": "^11.5.4",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.439.0",
     "pdfjs-dist": "^3.11.174",
     "react": "^18.3.1",

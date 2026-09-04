@@ -1,4 +1,5 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import JSZip from 'jszip';
 import { DocumentDetail, DocumentSummary, ReprocessOptions } from '../types';
 
 // Set up pdf.js worker CDN for browser PDF text parsing
@@ -25,7 +26,7 @@ function saveLocalDocs(docs: DocumentDetail[]): void {
   }
 }
 
-// PDF.js Browser-side PDF Text Extractor
+// 1. PDF.js Browser-side PDF Text Extractor
 async function extractTextFromPdfArrayBuffer(arrayBuffer: ArrayBuffer, fileName: string): Promise<string> {
   try {
     const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
@@ -54,7 +55,226 @@ async function extractTextFromPdfArrayBuffer(arrayBuffer: ArrayBuffer, fileName:
   return `# ${fileName.replace(/\.[^/.]+$/, '')}\n\nDocument File: ${fileName}\nFormat: PDF Document`;
 }
 
-// Client-side Heuristic Normalizer & Token Engine for standalone Vercel previews
+// 2. DOCX Word Document Extractor
+async function extractTextFromDocxArrayBuffer(arrayBuffer: ArrayBuffer, fileName: string): Promise<string> {
+  try {
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    const docXmlFile = zip.file('word/document.xml');
+    if (!docXmlFile) return `# ${fileName}\n\nWord Document (${fileName})`;
+
+    const xmlStr = await docXmlFile.async('string');
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
+
+    const paragraphs = xmlDoc.getElementsByTagName('w:p');
+    const mdLines: string[] = [`# ${fileName.replace(/\.[^/.]+$/, '')}`];
+
+    for (let i = 0; i < paragraphs.length; i++) {
+      const p = paragraphs[i];
+      const pStyle = p.getElementsByTagName('w:pStyle')[0]?.getAttribute('w:val')?.toLowerCase() || '';
+      const textNodes = p.getElementsByTagName('w:t');
+      const textParts: string[] = [];
+      for (let j = 0; j < textNodes.length; j++) {
+        textParts.push(textNodes[j].textContent || '');
+      }
+      const pText = textParts.join('').trim();
+      if (!pText) continue;
+
+      if (pStyle.includes('heading1') || pStyle.includes('title')) {
+        mdLines.push(`\n## ${pText}`);
+      } else if (pStyle.includes('heading2')) {
+        mdLines.push(`\n### ${pText}`);
+      } else if (pStyle.includes('heading3')) {
+        mdLines.push(`\n#### ${pText}`);
+      } else if (pStyle.includes('list') || pStyle.includes('bullet') || p.getElementsByTagName('w:numPr').length > 0) {
+        mdLines.push(`- ${pText}`);
+      } else {
+        mdLines.push(pText);
+      }
+    }
+
+    // Extract Tables in DOCX
+    const tables = xmlDoc.getElementsByTagName('w:tbl');
+    for (let i = 0; i < tables.length; i++) {
+      const rows = tables[i].getElementsByTagName('w:tr');
+      const tableRows: string[][] = [];
+      for (let r = 0; r < rows.length; r++) {
+        const cells = rows[r].getElementsByTagName('w:tc');
+        const cellTexts: string[] = [];
+        for (let c = 0; c < cells.length; c++) {
+          cellTexts.push((cells[c].textContent || '').replace(/[\r\n]+/g, ' ').trim());
+        }
+        if (cellTexts.some(t => t.length > 0)) {
+          tableRows.push(cellTexts);
+        }
+      }
+      if (tableRows.length > 0) {
+        const header = tableRows[0];
+        const sep = header.map(() => '---');
+        mdLines.push('\n| ' + header.join(' | ') + ' |\n| ' + sep.join(' | ') + ' |');
+        for (let r = 1; r < tableRows.length; r++) {
+          mdLines.push('| ' + tableRows[r].join(' | ') + ' |');
+        }
+        mdLines.push('');
+      }
+    }
+
+    return mdLines.join('\n\n');
+  } catch (e) {
+    console.warn('DOCX parsing error:', e);
+    return `# ${fileName.replace(/\.[^/.]+$/, '')}\n\nWord Document (${fileName})`;
+  }
+}
+
+// 3. XLSX Excel Spreadsheet Extractor
+async function extractTextFromXlsxArrayBuffer(arrayBuffer: ArrayBuffer, fileName: string): Promise<string> {
+  try {
+    const zip = await JSZip.loadAsync(arrayBuffer);
+
+    // Read shared strings table
+    const sharedStrings: string[] = [];
+    const sharedStringsFile = zip.file('xl/sharedStrings.xml');
+    if (sharedStringsFile) {
+      const ssXml = await sharedStringsFile.async('string');
+      const parser = new DOMParser();
+      const ssDoc = parser.parseFromString(ssXml, 'application/xml');
+      const siElements = ssDoc.getElementsByTagName('si');
+      for (let i = 0; i < siElements.length; i++) {
+        sharedStrings.push(siElements[i].textContent || '');
+      }
+    }
+
+    // Read sheets
+    const sheetFiles = Object.keys(zip.files).filter(name => name.startsWith('xl/worksheets/sheet') && name.endsWith('.xml'));
+    const mdSheets: string[] = [];
+
+    for (let s = 0; s < sheetFiles.length; s++) {
+      const sheetFile = zip.file(sheetFiles[s]);
+      if (!sheetFile) continue;
+      const sheetXml = await sheetFile.async('string');
+      const parser = new DOMParser();
+      const sheetDoc = parser.parseFromString(sheetXml, 'application/xml');
+      const rows = sheetDoc.getElementsByTagName('row');
+      const tableRows: string[][] = [];
+
+      for (let r = 0; r < rows.length; r++) {
+        const cells = rows[r].getElementsByTagName('c');
+        const rowCells: string[] = [];
+        for (let c = 0; c < cells.length; c++) {
+          const cell = cells[c];
+          const isShared = cell.getAttribute('t') === 's';
+          const valEl = cell.getElementsByTagName('v')[0];
+          let val = valEl ? valEl.textContent || '' : '';
+          if (isShared && val) {
+            const idx = parseInt(val, 10);
+            val = sharedStrings[idx] || val;
+          }
+          rowCells.push(val.replace(/\|/g, '-').trim());
+        }
+        if (rowCells.some(v => v.length > 0)) {
+          tableRows.push(rowCells);
+        }
+      }
+
+      if (tableRows.length > 0) {
+        const header = tableRows[0];
+        const sep = header.map(() => '---');
+        const tableLines = [
+          `### Sheet ${s + 1}`,
+          `| ${header.join(' | ')} |`,
+          `| ${sep.join(' | ')} |`,
+          ...tableRows.slice(1).map(r => `| ${r.join(' | ')} |`)
+        ];
+        mdSheets.push(tableLines.join('\n'));
+      }
+    }
+
+    if (mdSheets.length > 0) {
+      return `# ${fileName.replace(/\.[^/.]+$/, '')}\n\n` + mdSheets.join('\n\n---\n\n');
+    }
+  } catch (e) {
+    console.warn('XLSX parsing error:', e);
+  }
+
+  return `# ${fileName.replace(/\.[^/.]+$/, '')}\n\nExcel Workbook: ${fileName}`;
+}
+
+// 4. PPTX Presentation Extractor
+async function extractTextFromPptxArrayBuffer(arrayBuffer: ArrayBuffer, fileName: string): Promise<string> {
+  try {
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    const slideFiles = Object.keys(zip.files)
+      .filter(name => name.startsWith('ppt/slides/slide') && name.endsWith('.xml'))
+      .sort((a, b) => {
+        const numA = parseInt(a.replace(/\D/g, '') || '0', 10);
+        const numB = parseInt(b.replace(/\D/g, '') || '0', 10);
+        return numA - numB;
+      });
+
+    const mdSlides: string[] = [];
+
+    for (let s = 0; s < slideFiles.length; s++) {
+      const slideFile = zip.file(slideFiles[s]);
+      if (!slideFile) continue;
+      const xmlStr = await slideFile.async('string');
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
+
+      const paragraphs = xmlDoc.getElementsByTagName('a:p');
+      const slideLines: string[] = [];
+
+      for (let p = 0; p < paragraphs.length; p++) {
+        const textElements = paragraphs[p].getElementsByTagName('a:t');
+        const parts: string[] = [];
+        for (let t = 0; t < textElements.length; t++) {
+          parts.push(textElements[t].textContent || '');
+        }
+        const text = parts.join('').trim();
+        if (text) {
+          slideLines.push(text);
+        }
+      }
+
+      if (slideLines.length > 0) {
+        const title = slideLines[0];
+        const body = slideLines.slice(1).map(l => `- ${l}`).join('\n');
+        mdSlides.push(`## Slide ${s + 1}: ${title}\n\n${body}`);
+      }
+    }
+
+    if (mdSlides.length > 0) {
+      return `# ${fileName.replace(/\.[^/.]+$/, '')}\n\n` + mdSlides.join('\n\n---\n\n');
+    }
+  } catch (e) {
+    console.warn('PPTX parsing error:', e);
+  }
+
+  return `# ${fileName.replace(/\.[^/.]+$/, '')}\n\nPowerPoint Presentation: ${fileName}`;
+}
+
+// 5. CSV to Markdown Table Extractor
+function formatCsvToMarkdown(csvText: string, fileName: string): string {
+  const lines = csvText.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length === 0) return `# ${fileName}\n\nEmpty CSV file.`;
+
+  const rows = lines.map(line => {
+    return line.split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+  });
+
+  if (rows.length === 0) return csvText;
+
+  const header = rows[0];
+  const sep = header.map(() => '---');
+  const mdRows = [
+    `# ${fileName.replace(/\.[^/.]+$/, '')}`,
+    `\n| ${header.join(' | ')} |`,
+    `| ${sep.join(' | ')} |`,
+    ...rows.slice(1).map(r => `| ${r.join(' | ')} |`)
+  ];
+  return mdRows.join('\n');
+}
+
+// Client-side Heuristic Normalizer & Token Engine
 function processClientSideDocument(
   file: File,
   extractedText: string,
@@ -97,7 +317,7 @@ function processClientSideDocument(
     if (l.startsWith('* ') || l.startsWith('+ ') || l.startsWith('o ')) {
       return '- ' + l.substring(2);
     }
-    if (/^[A-Z0-9\s:,\-]{4,50}$/.test(l) && !l.startsWith('#')) {
+    if (/^[A-Z0-9\s:,\-]{4,50}$/.test(l) && !l.startsWith('#') && !l.startsWith('|') && !l.startsWith('-')) {
       return `## ${l}`;
     }
     return line;
@@ -129,7 +349,7 @@ function processClientSideDocument(
     file_type: fileExt,
     file_size_bytes: file.size,
     status: 'COMPLETED',
-    processing_stage: 'Ready (Standalone Mode)',
+    processing_stage: 'Ready',
     error_message: null,
     raw_extracted_text: rawMd,
     raw_markdown: rawMd,
@@ -149,7 +369,7 @@ function processClientSideDocument(
       cleanliness_score: cleanlinessScore,
       token_density_score: tokenDensityScore,
       semantic_clarity_score: semanticClarityScore,
-      insights: improvements.length > 0 ? improvements : ['Normalized list formatting and section headings.'],
+      insights: improvements.length > 0 ? improvements : ['Extracted document structure, standardized headings and tables.'],
       context_usage: {
         window_8k_pct: Number(((cleanedTokens / 8192) * 100).toFixed(2)),
         window_32k_pct: Number(((cleanedTokens / 32768) * 100).toFixed(2)),
@@ -162,7 +382,7 @@ function processClientSideDocument(
         claude_savings_10k_calls_usd: Number(((savedTokens * 10000 / 1000000) * 3.00).toFixed(2)),
       }
     },
-    ai_provider_used: providerPreference && providerPreference !== 'auto' ? `AiDoc2MD (${providerPreference})` : 'AiDoc2MD PDF.js Engine',
+    ai_provider_used: providerPreference && providerPreference !== 'auto' ? `AiDoc2MD (${providerPreference})` : 'AiDoc2MD Engine',
     custom_ai_instructions: customInstructions || null,
     created_at: now,
     updated_at: now,
@@ -188,7 +408,7 @@ class ApiClient {
       return await res.json();
     } catch {
       return {
-        status: 'healthy (standalone demo mode)',
+        status: 'healthy',
         features: {
           markitdown: true,
           tiktoken_analysis: true,
@@ -236,17 +456,30 @@ class ApiClient {
     onProgress?: (progress: number) => void
   ): Promise<DocumentDetail> {
     let extractedText = '';
-
-    // Handle PDF binary files using PDF.js
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    if (ext === 'pdf' || file.type === 'application/pdf') {
-      try {
+
+    // Multi-format client-side parser
+    try {
+      if (ext === 'pdf' || file.type === 'application/pdf') {
         const arrayBuffer = await this.readArrayBufferFromFile(file);
         extractedText = await extractTextFromPdfArrayBuffer(arrayBuffer, file.name);
-      } catch (e) {
-        console.warn('PDF ArrayBuffer read failed:', e);
+      } else if (ext === 'docx' || ext === 'doc') {
+        const arrayBuffer = await this.readArrayBufferFromFile(file);
+        extractedText = await extractTextFromDocxArrayBuffer(arrayBuffer, file.name);
+      } else if (ext === 'xlsx' || ext === 'xls') {
+        const arrayBuffer = await this.readArrayBufferFromFile(file);
+        extractedText = await extractTextFromXlsxArrayBuffer(arrayBuffer, file.name);
+      } else if (ext === 'pptx' || ext === 'ppt') {
+        const arrayBuffer = await this.readArrayBufferFromFile(file);
+        extractedText = await extractTextFromPptxArrayBuffer(arrayBuffer, file.name);
+      } else if (ext === 'csv') {
+        const rawText = await this.readTextFromFile(file);
+        extractedText = formatCsvToMarkdown(rawText, file.name);
+      } else {
+        extractedText = await this.readTextFromFile(file);
       }
-    } else {
+    } catch (parseErr) {
+      console.warn('Client extraction error:', parseErr);
       extractedText = await this.readTextFromFile(file);
     }
 
@@ -291,7 +524,7 @@ class ApiClient {
 
       return result;
     } catch (e) {
-      console.warn('Backend REST API unavailable. Processing in Client-Side Standalone Engine:', e);
+      console.warn('Backend REST API unavailable. Processing via Client-Side Engine:', e);
       if (onProgress) {
         onProgress(50);
         setTimeout(() => onProgress(100), 300);
