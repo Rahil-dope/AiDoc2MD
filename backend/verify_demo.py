@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'aidoc2md.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'contextforge.settings')
 django.setup()
 
 from documents.services.converter import DocumentConverter

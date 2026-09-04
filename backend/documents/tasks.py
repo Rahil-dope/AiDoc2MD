@@ -18,7 +18,7 @@ def process_document_pipeline(
     """
     Main processing pipeline:
     1. Update status -> PROCESSING
-    2. DocumentConverter -> MarkItDown / Fallback to extract Markdown & Raw text
+    2. DocumentConverter -> AnyDoc / Vision to extract Markdown & Raw text
     3. AICleaner -> Normalize structure, fix tables, clean OCR noise
     4. TokenizerAnalyzer -> Calculate tiktoken counts, savings %, and AI Readiness Score
     5. Save results to Database -> Status COMPLETED
@@ -31,7 +31,7 @@ def process_document_pipeline(
 
     try:
         doc.status = Document.Status.PROCESSING
-        doc.processing_stage = "Converting document with MarkItDown..."
+        doc.processing_stage = "Converting document with AnyDoc..."
         doc.error_message = None
         doc.save(update_fields=['status', 'processing_stage', 'error_message', 'updated_at'])
 

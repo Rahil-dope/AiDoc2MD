@@ -11,7 +11,7 @@ def health_check(request):
         "service": "AiDoc2MD API",
         "version": "1.0.0",
         "features": {
-            "markitdown": True,
+            "anydoc": True,
             "tiktoken_analysis": True,
             "ai_normalization": True,
             "pdf_export": True

@@ -1,5 +1,6 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import JSZip from 'jszip';
+import initAnyDocWasm, { toMarkdownBytes, Format as AnyDocFormat } from '@firecrawl/anydoc-wasm';
 import { DocumentDetail, DocumentSummary, ReprocessOptions } from '../types';
 
 // Set up pdf.js worker CDN for browser PDF text parsing
@@ -7,6 +8,17 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 const LOCAL_STORAGE_KEY = 'aidoc2md_local_documents';
+
+let wasmInitPromise: Promise<any> | null = null;
+async function ensureAnyDocWasmInitialized(): Promise<boolean> {
+  if (!wasmInitPromise) {
+    wasmInitPromise = initAnyDocWasm().then(() => true).catch((e) => {
+      console.warn('AnyDoc WASM initialization deferred or failed:', e);
+      return false;
+    });
+  }
+  return wasmInitPromise;
+}
 
 // Helper for client-side fallback storage
 function getLocalDocs(): DocumentDetail[] {
@@ -410,7 +422,7 @@ class ApiClient {
       return {
         status: 'healthy',
         features: {
-          markitdown: true,
+          anydoc: true,
           tiktoken_analysis: true,
           ai_normalization: true,
           pdf_export: true
@@ -457,26 +469,41 @@ class ApiClient {
   ): Promise<DocumentDetail> {
     let extractedText = '';
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const supportedAnyDocFormats = ['doc', 'docx', 'odt', 'pdf', 'ppt', 'pptx', 'rtf', 'epub', 'xlsx', 'ods', 'odp', 'csv'];
 
-    // Multi-format client-side parser
+    // Multi-format client-side parser with AnyDoc WASM primary layer
     try {
-      if (ext === 'pdf' || file.type === 'application/pdf') {
-        const arrayBuffer = await this.readArrayBufferFromFile(file);
-        extractedText = await extractTextFromPdfArrayBuffer(arrayBuffer, file.name);
-      } else if (ext === 'docx' || ext === 'doc') {
-        const arrayBuffer = await this.readArrayBufferFromFile(file);
-        extractedText = await extractTextFromDocxArrayBuffer(arrayBuffer, file.name);
-      } else if (ext === 'xlsx' || ext === 'xls') {
-        const arrayBuffer = await this.readArrayBufferFromFile(file);
-        extractedText = await extractTextFromXlsxArrayBuffer(arrayBuffer, file.name);
-      } else if (ext === 'pptx' || ext === 'ppt') {
-        const arrayBuffer = await this.readArrayBufferFromFile(file);
-        extractedText = await extractTextFromPptxArrayBuffer(arrayBuffer, file.name);
-      } else if (ext === 'csv') {
-        const rawText = await this.readTextFromFile(file);
-        extractedText = formatCsvToMarkdown(rawText, file.name);
-      } else {
-        extractedText = await this.readTextFromFile(file);
+      const arrayBuffer = await this.readArrayBufferFromFile(file);
+      const isWasmReady = await ensureAnyDocWasmInitialized();
+
+      if (isWasmReady && supportedAnyDocFormats.includes(ext)) {
+        try {
+          const bytes = new Uint8Array(arrayBuffer);
+          const wasmFmt = ext as AnyDocFormat;
+          const wasmMd = toMarkdownBytes(bytes, wasmFmt);
+          if (wasmMd && wasmMd.trim()) {
+            extractedText = wasmMd.trim();
+          }
+        } catch (wasmErr) {
+          console.warn('AnyDoc WASM conversion exception, falling back:', wasmErr);
+        }
+      }
+
+      if (!extractedText) {
+        if (ext === 'pdf' || file.type === 'application/pdf') {
+          extractedText = await extractTextFromPdfArrayBuffer(arrayBuffer, file.name);
+        } else if (ext === 'docx' || ext === 'doc') {
+          extractedText = await extractTextFromDocxArrayBuffer(arrayBuffer, file.name);
+        } else if (ext === 'xlsx' || ext === 'xls') {
+          extractedText = await extractTextFromXlsxArrayBuffer(arrayBuffer, file.name);
+        } else if (ext === 'pptx' || ext === 'ppt') {
+          extractedText = await extractTextFromPptxArrayBuffer(arrayBuffer, file.name);
+        } else if (ext === 'csv') {
+          const rawText = await this.readTextFromFile(file);
+          extractedText = formatCsvToMarkdown(rawText, file.name);
+        } else {
+          extractedText = await this.readTextFromFile(file);
+        }
       }
     } catch (parseErr) {
       console.warn('Client extraction error:', parseErr);

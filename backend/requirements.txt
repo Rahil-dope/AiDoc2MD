@@ -8,17 +8,13 @@ psycopg2-binary>=2.9.9
 celery>=5.4.0
 redis>=5.0.8
 
-# Document Conversion & Parsing
-markitdown>=0.0.1a4
-pypdf>=5.0.0
-python-docx>=1.1.2
-openpyxl>=3.1.5
-pandas>=2.2.2
-beautifulsoup4>=4.12.3
-pillow>=10.4.0
-python-pptx>=1.0.2
+# Primary Document Conversion Engine
+firecrawl-anydoc>=0.2.4
 
-# Tokenization & AI
+# Image & Vision Handling
+pillow>=10.4.0
+
+# Tokenization & AI Normalization
 tiktoken>=0.7.0
 openai>=1.45.0
 google-generativeai>=0.8.0
@@ -29,7 +25,7 @@ requests>=2.32.3
 reportlab>=4.2.2
 markdown>=3.7
 
-# Server & Utilities
+# Server & Testing
 gunicorn>=23.0.0
 pytest>=8.3.2
 pytest-django>=4.9.0

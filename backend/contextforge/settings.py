@@ -155,7 +155,9 @@ CELERY_TASK_EAGER_PROPAGATES = True
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
 
-# AI Configuration
+# AI & OCR Configuration
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+FIRECRAWL_API_KEY = os.getenv('FIRECRAWL_API_KEY', '')
+FIRECRAWL_API_URL = os.getenv('FIRECRAWL_API_URL', '')
 AI_DEFAULT_PROVIDER = os.getenv('AI_DEFAULT_PROVIDER', 'auto')  # 'auto', 'openai', 'gemini', 'heuristic'

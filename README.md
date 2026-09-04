@@ -46,7 +46,7 @@ AiDoc2MD converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, Images) in
 
 **AiDoc2MD** is a developer-grade document ingestion and token-optimization workspace built for Retrieval-Augmented Generation (RAG), LLM context management, and document processing pipelines. 
 
-Raw text extractions from PDFs, spreadsheets, and scanned documents often contain pagination boilerplate, broken ligatures (`fi`, `fl`), unaligned table pipes, and trailing whitespace. AiDoc2MD ingests these files using **Microsoft MarkItDown**, applies a modular **AI Normalization Layer**, and calculates exact byte-pair token savings (`cl100k_base`) alongside a 4-pillar **AI Readiness Score (0–100)**.
+Raw text extractions from PDFs, spreadsheets, and scanned documents often contain pagination boilerplate, broken ligatures (`fi`, `fl`), unaligned table pipes, and trailing whitespace. AiDoc2MD ingests these files using **AnyDoc** (`firecrawl-anydoc` / `@firecrawl/anydoc-wasm`), applies a modular **AI Normalization Layer**, and calculates exact byte-pair token savings (`cl100k_base`) alongside a 4-pillar **AI Readiness Score (0–100)**.
 
 ---
 
@@ -54,6 +54,7 @@ Raw text extractions from PDFs, spreadsheets, and scanned documents often contai
 
 - **Eliminate Context Window Bloat**: Save 20%–45% of LLM prompt budgets by stripping OCR noise, page numbers, and repeating headers.
 - **Table Integrity**: Converts messy CSV and Excel rows into clean GitHub Flavored Markdown (GFM) tables.
+- **Authoritative Conversion with AnyDoc**: Ultra-fast native conversion across PDF, DOCX, XLSX, PPTX, CSV, EPUB, RTF, and ODF formats.
 - **Zero-Key Heuristic Fallback**: Operates out-of-the-box with a high-speed deterministic normalizer, or connects to **OpenAI GPT-4o** and **Google Gemini 1.5**.
 - **Developer-First UI**: Cinematic obsidian split-screen editor, live preview, diff viewer, radial readiness gauge, and PDF/MD export hub.
 
@@ -61,7 +62,7 @@ Raw text extractions from PDFs, spreadsheets, and scanned documents often contai
 
 ## ✨ Key Features
 
-- 📂 **Multi-Format Ingestion**: Ingests PDF, DOCX, XLSX, PPTX, CSV, HTML, TXT, and PNG/JPG images.
+- 📂 **Multi-Format Ingestion with AnyDoc**: Ingests PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODT, ODS, ODP, TXT, and PNG/JPG images.
 - 🧹 **AI Normalization Engine**: Reconstructs tables, standardizes list bullet points, normalizes heading hierarchies (`#`, `##`, `###`), and formats code blocks.
 - ⚡ **Tiktoken Precision & AI Readiness Score (0–100)**: Evaluates documents across 4 dimensions:
   1. **Structure Score (30%)**: Heading depth, valid GFM tables, code fences.
@@ -80,7 +81,7 @@ Raw text extractions from PDFs, spreadsheets, and scanned documents often contai
 | :--- | :--- | :--- |
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS | Single Page Application, Monaco/line editor, live GFM preview, Framer Motion animations |
 | **Backend API** | Python 3.12+, Django 5.2, Django REST Framework | RESTful endpoints, file upload processing, metric calculation, PDF generation |
-| **Conversion Engine** | Microsoft `markitdown`, `pypdf`, `python-docx`, `openpyxl`, `pandas` | Multi-format document parser converting binary files to Markdown |
+| **Conversion Engine** | Firecrawl `anydoc` (`firecrawl-anydoc` / `@firecrawl/anydoc-wasm`) | Primary & authoritative document parser converting PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF to Markdown |
 | **AI Layer** | `openai`, `google-generativeai`, `HeuristicRuleCleaner` | Modular normalizer running OpenAI GPT-4o, Gemini 1.5 Flash, or deterministic rules |
 | **Token Analyzer** | `tiktoken` (`cl100k_base` / `o200k_base`) | Byte-pair encoding tokenizer for exact token accounting and cost estimation |
 | **Async Tasks** | Celery 5.6, Redis 7 | Asynchronous background processing queue (with eager fallback for local dev) |
@@ -97,8 +98,8 @@ flowchart TD
     User["User / React SPA"] -->|"1. Multipart Upload"| API["Django REST API (/api/documents/upload/)"]
     API -->|"2. Enqueue Job"| Redis["Redis Queue"]
     Redis -->|"3. Worker Execution"| Celery["Celery Task Worker"]
-    Celery -->|"4. Raw Extraction"| MarkItDown["Microsoft MarkItDown Engine"]
-    MarkItDown -->|"5. Clean Noise & Structure"| AILayer["AI Normalizer (OpenAI / Gemini / Heuristics)"]
+    Celery -->|"4. Native Conversion"| AnyDoc["AnyDoc Engine (firecrawl-anydoc)"]
+    AnyDoc -->|"5. Clean Noise & Structure"| AILayer["AI Normalizer (OpenAI / Gemini / Heuristics)"]
     AILayer -->|"6. Compute Tokens & Score"| Tiktoken["Tiktoken Analyzer (cl100k_base)"]
     Tiktoken -->|"7. Save Record"| DB["PostgreSQL Database"]
     API -->|"8. Poll & Live Edit"| User
@@ -259,7 +260,7 @@ GET /api/health/
   "service": "AiDoc2MD API",
   "version": "1.0.0",
   "features": {
-    "markitdown": true,
+    "anydoc": true,
     "tiktoken_analysis": true,
     "ai_normalization": true,
     "pdf_export": true
@@ -332,16 +333,17 @@ cd backend
 
 **Verification Output:**
 ```
-documents/tests/test_api.py::test_document_upload_and_list PASSED        [ 12%]
-documents/tests/test_ai_cleaner.py::test_heuristic_cleaning PASSED       [ 25%]
-documents/tests/test_ai_cleaner.py::test_ai_cleaner_fallback PASSED      [ 37%]
-documents/tests/test_converter.py::test_converter_text_file PASSED       [ 50%]
-documents/tests/test_converter.py::test_converter_csv_file PASSED        [ 62%]
-documents/tests/test_tokenizer.py::test_token_counting PASSED            [ 75%]
-documents/tests/test_tokenizer.py::test_token_analysis_metrics PASSED    [ 87%]
+documents/tests/test_api.py::test_document_upload_and_list PASSED        [ 11%]
+documents/tests/test_ai_cleaner.py::test_heuristic_cleaning PASSED       [ 22%]
+documents/tests/test_ai_cleaner.py::test_ai_cleaner_fallback PASSED      [ 33%]
+documents/tests/test_converter.py::test_converter_text_file PASSED       [ 44%]
+documents/tests/test_converter.py::test_converter_csv_file PASSED        [ 55%]
+documents/tests/test_converter.py::test_converter_unsupported_image_routing PASSED [ 66%]
+documents/tests/test_tokenizer.py::test_token_counting PASSED            [ 77%]
+documents/tests/test_tokenizer.py::test_token_analysis_metrics PASSED    [ 88%]
 documents/tests/test_tokenizer.py::test_readiness_score_pillars PASSED   [100%]
 
-============================== 8 passed in 2.64s ==============================
+============================== 9 passed in 1.08s ==============================
 ```
 
 ---
@@ -365,6 +367,6 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 <div align="center">
 
-Made with ❤️ by **Shaikh Rahil Hussain** • Powered by Microsoft MarkItDown & OpenAI Tiktoken
+Made with ❤️ by **Shaikh Rahil Hussain** • Powered by Firecrawl AnyDoc & OpenAI Tiktoken
 
 </div>
