@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 from django.http import HttpResponse, Http404
 from django.conf import settings
