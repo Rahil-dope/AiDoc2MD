@@ -86,6 +86,42 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({
   };
 
   const handleExportPdf = () => {
+    if (document.id.startsWith('local-')) {
+      // Standalone mode PDF print window
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>${document.title} - AiDoc2MD PDF Export</title>
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; }
+                h1 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+                h2 { color: #334155; margin-top: 24px; }
+                pre { background: #f1f5f9; padding: 16px; border-radius: 8px; font-family: monospace; overflow-x: auto; }
+                code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+                blockquote { border-left: 4px solid #8b5cf6; padding-left: 16px; color: #64748b; margin: 16px 0; }
+                table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+                th, td { border: 1px solid #cbd5e1; padding: 8px 12px; text-align: left; }
+                th { background: #f8fafc; }
+              </style>
+            </head>
+            <body>
+              <div style="font-size: 11px; color: #64748b; margin-bottom: 12px;">AiDoc2MD Document Export • ${document.title}</div>
+              <pre style="white-space: pre-wrap; font-family: inherit;">${currentMarkdown.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+              <script>
+                window.onload = function() { window.print(); }
+              </script>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+      }
+      onShowToast('info', 'Opening PDF print preview...');
+      return;
+    }
+
     const pdfUrl = api.getExportPdfUrl(document.id);
     const link = window.document.createElement('a');
     link.href = pdfUrl;
