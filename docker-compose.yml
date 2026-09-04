@@ -40,7 +40,7 @@ services:
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
-             gunicorn aidoc2md.wsgi:application --bind 0.0.0.0:8000 --workers 3 --reload"
+             gunicorn contextforge.wsgi:application --bind 0.0.0.0:8000 --workers 3 --reload"
     volumes:
       - ./backend:/app
       - backend_media:/app/media
@@ -71,7 +71,7 @@ services:
       dockerfile: Dockerfile
     container_name: aidoc2md_worker
     restart: unless-stopped
-    command: celery -A aidoc2md worker -l info --concurrency=2
+    command: celery -A contextforge worker -l info --concurrency=2
     volumes:
       - ./backend:/app
       - backend_media:/app/media
