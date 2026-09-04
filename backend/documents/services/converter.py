@@ -60,13 +60,16 @@ class DocumentConverter:
             try:
                 result = self.markitdown.convert(file_path)
                 markdown_content = result.text_content if hasattr(result, 'text_content') else str(result)
-                if markdown_content and markdown_content.strip():
-                    raw_text = self._strip_markdown_syntax(markdown_content)
+                stripped_md = markdown_content.strip() if markdown_content else ""
+                if stripped_md and not stripped_md.startswith('%PDF-') and not ('1 0 obj' in stripped_md[:200] and '/Type' in stripped_md[:300]):
+                    raw_text = self._strip_markdown_syntax(stripped_md)
                     return ConversionResult(
                         raw_extracted_text=raw_text,
-                        raw_markdown=markdown_content.strip(),
+                        raw_markdown=stripped_md,
                         metadata={"engine": "markitdown", "file_type": file_type}
                     )
+                else:
+                    logger.warning(f"MarkItDown output contained raw PDF binary stream for {file_path}. Falling back to pypdf.")
             except Exception as e:
                 logger.warning(f"MarkItDown conversion failed for {file_path} ({file_type}): {e}. Trying fallback.")
 

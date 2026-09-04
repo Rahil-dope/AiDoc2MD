@@ -21,6 +21,42 @@ function saveLocalDocs(docs: DocumentDetail[]): void {
   }
 }
 
+function extractCleanTextFromPdfString(rawStr: string, file: File): string {
+  if (!rawStr) return '';
+  // Check if binary PDF content (%PDF- or raw stream objects)
+  if (rawStr.startsWith('%PDF-') || (rawStr.includes('1 0 obj') && rawStr.includes('/Type'))) {
+    const matches: string[] = [];
+    const textPattern = /\(([^()]{2,500})\)/g;
+    let match;
+    while ((match = textPattern.exec(rawStr)) !== null) {
+      const extracted = match[1].trim();
+      if (
+        extracted.length > 2 &&
+        !extracted.startsWith('/') &&
+        !/^[\x00-\x1F]+$/.test(extracted) &&
+        !/^(Font|Catalog|Pages|Parent|Type|MediaBox|Contents|Resources|ProcSet|Encoding|FlateDecode)$/i.test(extracted)
+      ) {
+        matches.push(extracted);
+      }
+    }
+
+    if (matches.length > 0) {
+      const uniqueLines = Array.from(new Set(matches));
+      return `# ${file.name.replace(/\.[^/.]+$/, '')}\n\n` + uniqueLines.join('\n\n');
+    }
+
+    // Fallback: extract readable words
+    const words = rawStr.match(/[A-Za-z0-9_.\-:]{3,}/g) || [];
+    const cleanWords = words.filter(w => !['obj', 'endobj', 'stream', 'endstream', 'xref', 'trailer', 'startxref', 'FlateDecode', 'PDF', 'Type', 'Catalog', 'Pages'].includes(w));
+    if (cleanWords.length > 10) {
+      return `# ${file.name.replace(/\.[^/.]+$/, '')}\n\n` + cleanWords.slice(0, 300).join(' ');
+    }
+
+    return `# ${file.name.replace(/\.[^/.]+$/, '')}\n\nDocument File: ${file.name}\nFile Type: PDF Document\nFile Size: ${(file.size / 1024).toFixed(1)} KB.`;
+  }
+  return rawStr;
+}
+
 // Client-side Heuristic Normalizer & Token Engine for standalone Vercel previews
 function processClientSideDocument(
   file: File,
@@ -32,7 +68,7 @@ function processClientSideDocument(
   const docId = 'local-' + Math.random().toString(36).substring(2, 11);
   const now = new Date().toISOString();
 
-  let rawMd = fileText;
+  let rawMd = extractCleanTextFromPdfString(fileText, file);
   if (!rawMd || rawMd.trim() === '') {
     rawMd = `# ${file.name.replace(/\.[^/.]+$/, '')}\n\nProcessed document file (${fileExt.toUpperCase()}).\nFile Size: ${(file.size / 1024).toFixed(1)} KB.`;
   }
