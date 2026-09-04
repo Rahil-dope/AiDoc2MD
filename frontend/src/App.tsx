@@ -302,9 +302,39 @@ interface TokenReport {
       {/* Toast Notifications */}
       <NotificationToast toasts={toasts} onDismiss={removeToast} />
 
-      {/* Minimal Footer */}
-      <footer className="border-t border-dark-800/60 py-4 px-6 text-center text-xs font-mono text-slate-500">
-        ContextForge • AI Document-to-Markdown & Token Efficiency Studio • Django REST + Celery + MarkItDown + Tiktoken + React
+      {/* Footer with Developer Credits */}
+      <footer className="border-t border-dark-800/60 py-4 px-6 text-center text-xs font-mono text-slate-400 bg-dark-950 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto w-full">
+        <div>
+          ContextForge • AI Document-to-Markdown & Token Efficiency Studio
+        </div>
+        <div className="flex items-center gap-3 text-slate-300">
+          <span>Developed by <strong className="text-white">Shaikh Rahil Hussain</strong></span>
+          <span>•</span>
+          <a
+            href="https://github.com/Rahil-dope"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-brand-300 transition-colors underline decoration-dark-700"
+          >
+            GitHub
+          </a>
+          <span>•</span>
+          <a
+            href="https://www.linkedin.com/in/shaikh-rahil-hussain-a54348291"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-blue-400 transition-colors underline decoration-dark-700"
+          >
+            LinkedIn
+          </a>
+          <span>•</span>
+          <a
+            href="mailto:rahilhussain431601@gmail.com"
+            className="hover:text-emerald-400 transition-colors underline decoration-dark-700"
+          >
+            Email
+          </a>
+        </div>
       </footer>
 
     </div>

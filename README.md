@@ -1,111 +1,223 @@
-# ⚡ ContextForge — AI Document-to-Markdown & Token-Efficiency Studio
+<div align="center">
 
-**ContextForge** is a high-performance document normalization and token-optimization engine designed for LLM workflows, RAG architectures, and developer context management.
+# ⚡ ContextForge
 
-It ingests multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, TXT, Images), converts them using Microsoft **MarkItDown**, cleans and normalizes structures via an **AI layer**, and computes exact token savings and **AI Readiness Scores** using **tiktoken**.
+**AI-Powered Document-to-Markdown Converter & Token-Efficiency Studio**
 
----
-
-## 📸 Key Features
-
-- 📂 **Multi-Format Ingestion**: Convert PDF, DOCX, XLSX, PPTX, CSV, HTML, TXT, and Scans/Images with MarkItDown & specialized fallback parsers.
-- 🧹 **Modular AI Normalization**: Fixes OCR noise, repairs broken Markdown tables, aligns heading hierarchy (`#`, `##`, `###`), strips repeating headers/footers, and formats code blocks. Supports OpenAI (GPT-4o), Google Gemini 1.5, and a zero-dependency high-speed Deterministic Heuristic Engine.
-- ⚡ **Tiktoken Precision & AI Readiness Score (0–100)**: Exact token accounting (`cl100k_base`), token reduction %, context window footprint (8K, 32K, 128K, 1M), and projected dollar cost savings.
-- 🪟 **Cinematic Split-Screen Workspace**:
-  - Live side-by-side editable Markdown source with line numbers & live character/token counter.
-  - Live GFM-rendered preview with syntax-highlighted code copy buttons and tables.
-  - Interactive Diff Viewer highlighting additions and removed noise.
-- 📦 **Export Hub**: 1-click Copy Markdown, Download `.md`, and generate styled PDF reports.
-- 📜 **Conversion History**: Persistent history stored in PostgreSQL (or SQLite local fallback).
-- 🚀 **Full Docker & Local Development Setup**: Docker Compose with Django REST, Celery, Redis, PostgreSQL, and React Nginx frontend.
+[![License](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-5.2-092E20.svg?logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB.svg?logo=react&logoColor=black)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 
 ---
 
-## 🏛️ System Architecture
+ContextForge converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, Images) into LLM-optimized Markdown, eliminates OCR noise, repairs broken tables, and measures exact token savings using `tiktoken`.
+
+[Quick Start](#-quick-start) • [Architecture](#-system-architecture) • [API Reference](#-api-reference) • [Vercel Deployment](#-vercel-deployment) • [Developer](#-author--credits)
+
+</div>
+
+---
+
+## 📑 Table of Contents
+
+- [Overview](#-overview)
+- [Why ContextForge?](#-why-contextforge)
+- [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
+- [System Architecture](#-system-architecture)
+- [Project Structure](#-project-structure)
+- [Quick Start](#-quick-start)
+- [Prerequisites](#-prerequisites)
+- [Installation & Setup](#-installation--setup)
+- [Environment Variables](#-environment-variables)
+- [API Reference](#-api-reference)
+- [Vercel Deployment](#-vercel-deployment)
+- [Testing & Verification](#-testing--verification)
+- [Author & Credits](#-author--credits)
+- [License](#-license)
+
+---
+
+## 🔍 Overview
+
+**ContextForge** is a developer-grade document ingestion and token-optimization workspace built for Retrieval-Augmented Generation (RAG), LLM context management, and document processing pipelines. 
+
+Raw text extractions from PDFs, spreadsheets, and scanned documents often contain pagination boilerplate, broken ligatures (`fi`, `fl`), unaligned table pipes, and trailing whitespace. ContextForge ingests these files using **Microsoft MarkItDown**, applies a modular **AI Normalization Layer**, and calculates exact byte-pair token savings (`cl100k_base`) alongside a 4-pillar **AI Readiness Score (0–100)**.
+
+---
+
+## 💡 Why ContextForge?
+
+- **Eliminate Context Window Bloat**: Save 20%–45% of LLM prompt budgets by stripping OCR noise, page numbers, and repeating headers.
+- **Table Integrity**: Converts messy CSV and Excel rows into clean GitHub Flavored Markdown (GFM) tables.
+- **Zero-Key Heuristic Fallback**: Operates out-of-the-box with a high-speed deterministic normalizer, or connects to **OpenAI GPT-4o** and **Google Gemini 1.5**.
+- **Developer-First UI**: Cinematic obsidian split-screen editor, live preview, diff viewer, radial readiness gauge, and PDF/MD export hub.
+
+---
+
+## ✨ Key Features
+
+- 📂 **Multi-Format Ingestion**: Ingests PDF, DOCX, XLSX, PPTX, CSV, HTML, TXT, and PNG/JPG images.
+- 🧹 **AI Normalization Engine**: Reconstructs tables, standardizes list bullet points, normalizes heading hierarchies (`#`, `##`, `###`), and formats code blocks.
+- ⚡ **Tiktoken Precision & AI Readiness Score (0–100)**: Evaluates documents across 4 dimensions:
+  1. **Structure Score (30%)**: Heading depth, valid GFM tables, code fences.
+  2. **Cleanliness Score (30%)**: Elimination of pagination noise and control characters.
+  3. **Token Density Score (25%)**: Ratio of informative content vs syntactic bloat.
+  4. **Semantic Clarity Score (15%)**: Balanced line wrapping and sentence boundaries.
+- 🪟 **Split-Screen Workspace**: Side-by-side editable Markdown source with line numbers, live GFM rendered preview, and unified/line diff viewer.
+- 📦 **Export Hub**: 1-click Copy Markdown, Download `.md`, and export styled PDF reports.
+- 📜 **Conversion History**: Persistent PostgreSQL history drawer with search and file-type filters.
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology | Role / Usage |
+| :--- | :--- | :--- |
+| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS | Single Page Application, Monaco/line editor, live GFM preview, Framer Motion animations |
+| **Backend API** | Python 3.12+, Django 5.2, Django REST Framework | RESTful endpoints, file upload processing, metric calculation, PDF generation |
+| **Conversion Engine** | Microsoft `markitdown`, `pypdf`, `python-docx`, `openpyxl`, `pandas` | Multi-format document parser converting binary files to Markdown |
+| **AI Layer** | `openai`, `google-generativeai`, `HeuristicRuleCleaner` | Modular normalizer running OpenAI GPT-4o, Gemini 1.5 Flash, or deterministic rules |
+| **Token Analyzer** | `tiktoken` (`cl100k_base` / `o200k_base`) | Byte-pair encoding tokenizer for exact token accounting and cost estimation |
+| **Async Tasks** | Celery 5.6, Redis 7 | Asynchronous background processing queue (with eager fallback for local dev) |
+| **Database** | PostgreSQL 16 (or SQLite fallback) | Stores document metadata, raw text, clean Markdown, and readiness metrics |
+| **PDF Export** | ReportLab 5.0 | Server-side PDF report compilation |
+| **Containers** | Docker & Docker Compose | Containerized multi-service orchestration |
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    User["User / React SPA"] -->|"1. Multipart Upload"| API["Django REST API (/api/documents/upload/)"]
+    API -->|"2. Enqueue Job"| Redis["Redis Queue"]
+    Redis -->|"3. Worker Execution"| Celery["Celery Task Worker"]
+    Celery -->|"4. Raw Extraction"| MarkItDown["Microsoft MarkItDown Engine"]
+    MarkItDown -->|"5. Clean Noise & Structure"| AILayer["AI Normalizer (OpenAI / Gemini / Heuristics)"]
+    AILayer -->|"6. Compute Tokens & Score"| Tiktoken["Tiktoken Analyzer (cl100k_base)"]
+    Tiktoken -->|"7. Save Record"| DB["PostgreSQL Database"]
+    API -->|"8. Poll & Live Edit"| User
+```
+
+---
+
+## 📁 Project Structure
 
 ```
-React (Vite + TS + Tailwind) 
-   │
-   ▼
-Django REST API (/api/documents/)
-   │
-   ├──▶ Celery Worker + Redis Queue (Async Conversion)
-   │       │
-   │       ├──▶ Microsoft MarkItDown Engine (Raw Conversion)
-   │       ├──▶ AI Normalizer (OpenAI / Gemini / Heuristics)
-   │       └──▶ Tiktoken Analyzer (Tokens & 4-Pillar Readiness Score)
-   │
-   └──▶ PostgreSQL (Conversion History & Document Metrics)
+ContextForge/
+├── backend/
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   ├── pytest.ini
+│   ├── verify_demo.py               # End-to-end pipeline verification script
+│   ├── contextforge/
+│   │   ├── settings.py              # Django & Celery configuration
+│   │   ├── urls.py
+│   │   └── celery.py
+│   └── documents/
+│       ├── models.py                # Document database schema
+│       ├── views.py                 # REST API endpoints
+│       ├── tasks.py                 # Celery background tasks
+│       ├── serializers.py
+│       └── services/
+│           ├── converter.py         # MarkItDown + fallback parsers
+│           ├── ai_cleaner.py        # Modular AI & Heuristic normalizer
+│           ├── tokenizer.py         # Tiktoken & Readiness Score engine
+│           └── exporter.py          # ReportLab PDF exporter
+├── frontend/
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── vercel.json                  # Vercel deployment config for frontend
+│   ├── src/
+│   │   ├── App.tsx                  # Main state coordinator
+│   │   ├── components/
+│   │   │   ├── Header.tsx           # Navbar & Developer credit chip
+│   │   │   ├── FileUploader.tsx     # Drag-and-drop zone with sample loaders
+│   │   │   ├── DocumentWorkspace.tsx# Split-screen workbench
+│   │   │   ├── SplitEditor.tsx      # Editable Markdown source with line numbers
+│   │   │   ├── MarkdownPreview.tsx  # GFM preview with syntax highlight
+│   │   │   ├── TokenAnalytics.tsx   # Token cards & cost savings
+│   │   │   ├── ReadinessScoreBadge.tsx # Radial score gauge (0-100)
+│   │   │   ├── DiffViewer.tsx       # Line & word diff viewer
+│   │   │   └── HistoryDrawer.tsx    # Conversion history drawer
+│   │   ├── api/client.ts
+│   │   └── utils/formatters.ts
+├── docker-compose.yml
+├── vercel.json                      # Monorepo root Vercel configuration
+├── .env.example
+└── README.md
 ```
 
 ---
 
-## 🚀 Quick Start with Docker Compose
-
-Ensure Docker is installed and running:
+## ⚡ Quick Start
 
 ```bash
-# 1. Clone or navigate to the project directory
-cd "d:\WORK\SEM 7\7. PROJECT"
+# 1. Clone the repository
+git clone https://github.com/Rahil-dope/ContextForge.git
+cd ContextForge
 
 # 2. Copy environment file
 cp .env.example .env
 
-# 3. Launch all containers (PostgreSQL, Redis, Backend, Celery Worker, Frontend)
+# 3. Launch with Docker Compose
 docker-compose up --build
 ```
 
-Access the services:
-- **Frontend App**: [http://localhost:3000](http://localhost:3000)
+Access:
+- **Frontend SPA**: [http://localhost:3000](http://localhost:3000)
 - **Django REST API**: [http://localhost:8000/api/](http://localhost:8000/api/)
 - **API Health Check**: [http://localhost:8000/api/health/](http://localhost:8000/api/health/)
 
 ---
 
-## 🛠️ Local Manual Development Setup
+## ⚙️ Prerequisites
 
-If you wish to run the backend and frontend locally without Docker:
+- **Docker & Docker Compose**: v20.10+ (for containerized deployment)
+- **Python**: v3.12+ (for local backend development)
+- **Node.js**: v20+ & **npm** v10+ (for local frontend development)
 
-### 1. Backend Setup (Python 3.12+)
+---
+
+## 🚀 Local Installation & Setup
+
+### 1. Backend Setup
 
 ```bash
 cd backend
 
-# Create & activate virtual environment
+# Create virtual environment
 python -m venv venv
-# On Windows PowerShell:
+
+# Activate virtual environment
+# Windows PowerShell:
 .\venv\Scripts\Activate.ps1
-# On Linux/macOS:
+# Linux/macOS:
 source venv/bin/activate
 
-# Install dependencies
+# Install backend dependencies
 pip install -r requirements.txt
 
-# Run migrations (defaults to SQLite if Postgres is not configured)
+# Run migrations (defaults to SQLite if PostgreSQL env variables are omitted)
 python manage.py makemigrations documents
 python manage.py migrate
 
-# (Optional) Run tests
-pytest
-
-# Start Django Development Server
+# Start backend server
 python manage.py runserver 8000
 ```
 
-*(Optional: In a separate terminal, start Celery worker if Redis is running):*
-```bash
-celery -A contextforge worker -l info
-```
-*(Note: If Celery/Redis is not running, the system will automatically process tasks in synchronous mode).*
-
----
-
-### 2. Frontend Setup (Node.js 20+)
+### 2. Frontend Setup
 
 ```bash
 cd frontend
 
-# Install dependencies
+# Install frontend dependencies
 npm install
 
 # Start Vite development server
@@ -116,37 +228,143 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🔑 Environment Variables (`.env`)
+## 🔑 Environment Variables
 
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `DEBUG` | Django debug mode | `True` |
-| `SECRET_KEY` | Django secret key | `django-insecure-...` |
-| `POSTGRES_DB` | PostgreSQL database name | `contextforge` (or SQLite fallback) |
-| `CELERY_BROKER_URL` | Redis broker URL | `redis://localhost:6379/0` |
-| `OPENAI_API_KEY` | (Optional) OpenAI API Key for GPT-4o cleanup | `""` |
-| `GEMINI_API_KEY` | (Optional) Google Gemini API Key | `""` |
-| `AI_DEFAULT_PROVIDER` | Default AI normalizer (`auto`, `openai`, `gemini`, `heuristic`) | `auto` |
-
----
-
-## 🧪 API Endpoints
-
-- `POST /api/documents/upload/`: Multipart upload of document. Returns 201 with document payload.
-- `GET /api/documents/`: List all converted documents with metrics.
-- `GET /api/documents/<uuid:id>/`: Fetch detailed document data, Markdown, and AI Readiness breakdown.
-- `PATCH /api/documents/<uuid:id>/`: Live-edit Markdown and recalculate token metrics.
-- `POST /api/documents/<uuid:id>/reprocess/`: Reprocess document with custom AI instructions.
-- `GET /api/documents/<uuid:id>/export/pdf/`: Download generated formatted PDF.
-- `GET /api/documents/<uuid:id>/export/md/`: Download raw or cleaned `.md` file.
-- `GET /api/health/`: System health status and active features.
+| Variable | Required | Description | Default |
+| :--- | :---: | :--- | :--- |
+| `DEBUG` | No | Django debug mode | `True` |
+| `SECRET_KEY` | No | Django secret key | `django-insecure-...` |
+| `POSTGRES_DB` | No | PostgreSQL database name | `contextforge` |
+| `POSTGRES_USER` | No | PostgreSQL username | `contextforge` |
+| `POSTGRES_PASSWORD` | No | PostgreSQL password | `contextforge_secure_pass` |
+| `POSTGRES_HOST` | No | PostgreSQL host address | `db` |
+| `CELERY_BROKER_URL` | No | Redis broker URI | `redis://redis:6379/0` |
+| `OPENAI_API_KEY` | No | (Optional) OpenAI API Key for GPT-4o cleaning | `""` |
+| `GEMINI_API_KEY` | No | (Optional) Google Gemini API Key | `""` |
+| `AI_DEFAULT_PROVIDER` | No | AI cleaning provider (`auto`, `openai`, `gemini`, `heuristic`) | `auto` |
+| `VITE_API_BASE_URL` | No | Frontend API Base URL | `/api` |
 
 ---
 
-## 🎯 AI Readiness Score Breakdown (0–100)
+## 📡 API Reference
 
-The AI Readiness Score evaluates whether a document is optimal for RAG and LLM context windows:
-1. **Structure Score (30%)**: Clear H1/H2/H3 hierarchy, GFM tables, code fences.
-2. **Cleanliness Score (30%)**: Elimination of OCR noise, repeating headers, page numbers, and bad control characters.
-3. **Token Density Score (25%)**: Ratio of informative alphanumeric text vs boilerplate tokens.
-4. **Semantic Clarity Score (15%)**: Balanced line wrapping, list consistency, and sentence boundary integrity.
+### Health Check
+```http
+GET /api/health/
+```
+**Response (200 OK):**
+```json
+{
+  "status": "healthy",
+  "service": "ContextForge API",
+  "version": "1.0.0",
+  "features": {
+    "markitdown": true,
+    "tiktoken_analysis": true,
+    "ai_normalization": true,
+    "pdf_export": true
+  }
+}
+```
+
+### Upload Document
+```http
+POST /api/documents/upload/
+Content-Type: multipart/form-data
+```
+| Parameter | Type | Required | Description |
+| :--- | :--- | :---: | :--- |
+| `file` | File | **Yes** | Document file (PDF, DOCX, XLSX, PPTX, CSV, TXT, Image) |
+| `title` | String | No | Custom document title |
+| `custom_ai_instructions` | String | No | Custom prompts for AI cleaner |
+| `preferred_provider` | String | No | Provider override (`auto`, `openai`, `gemini`, `heuristic`) |
+
+### List Document History
+```http
+GET /api/documents/
+```
+
+### Fetch Document Details
+```http
+GET /api/documents/<uuid:id>/
+```
+
+### Update User Markdown
+```http
+PATCH /api/documents/<uuid:id>/
+Content-Type: application/json
+
+{
+  "user_edited_markdown": "# Updated Document Title\n\n- Bullet item"
+}
+```
+
+### Export PDF
+```http
+GET /api/documents/<uuid:id>/export/pdf/
+```
+
+---
+
+## 🌐 Vercel Deployment
+
+ContextForge comes pre-configured with root and frontend `vercel.json` configurations for instant deployment on [Vercel](https://vercel.com).
+
+### Deploy Frontend on Vercel:
+1. Import repository `Rahil-dope/ContextForge` in Vercel Dashboard.
+2. Set Root Directory to `frontend`.
+3. Build Command: `npm run build`
+4. Output Directory: `dist`
+5. Click **Deploy**.
+
+For full stack Vercel deployments, configure `VITE_API_BASE_URL` in environment variables pointing to your hosted Django backend.
+
+---
+
+## 🧪 Testing & Verification
+
+Run the full pytest suite for backend converters, tokenizers, normalizers, and API endpoints:
+
+```bash
+cd backend
+.\venv\Scripts\pytest -v
+```
+
+**Verification Output:**
+```
+documents/tests/test_api.py::test_document_upload_and_list PASSED        [ 12%]
+documents/tests/test_ai_cleaner.py::test_heuristic_cleaning PASSED       [ 25%]
+documents/tests/test_ai_cleaner.py::test_ai_cleaner_fallback PASSED      [ 37%]
+documents/tests/test_converter.py::test_converter_text_file PASSED       [ 50%]
+documents/tests/test_converter.py::test_converter_csv_file PASSED        [ 62%]
+documents/tests/test_tokenizer.py::test_token_counting PASSED            [ 75%]
+documents/tests/test_tokenizer.py::test_token_analysis_metrics PASSED    [ 87%]
+documents/tests/test_tokenizer.py::test_readiness_score_pillars PASSED   [100%]
+
+============================== 8 passed in 2.64s ==============================
+```
+
+---
+
+## 👤 Author & Credits
+
+### Lead Developer
+
+**Shaikh Rahil Hussain**  
+- **GitHub**: [@Rahil-dope](https://github.com/Rahil-dope)
+- **LinkedIn**: [Shaikh Rahil Hussain](https://www.linkedin.com/in/shaikh-rahil-hussain-a54348291)
+- **Email**: [rahilhussain431601@gmail.com](mailto:rahilhussain431601@gmail.com)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+Made with ❤️ by **Shaikh Rahil Hussain** • Powered by Microsoft MarkItDown & OpenAI Tiktoken
+
+</div>

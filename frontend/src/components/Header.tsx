@@ -1,6 +1,5 @@
 import React from 'react';
-import { Layers, Plus, History, Sun, Moon, Sparkles, Activity } from 'lucide-react';
-import { DocumentSummary } from '../types';
+import { Layers, Plus, History, Sun, Moon, Github, Linkedin, Mail, Code } from 'lucide-react';
 
 interface HeaderProps {
   theme: 'dark' | 'light';
@@ -46,9 +45,42 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Action Controls */}
+        {/* Developer Badge & Action Controls */}
         <div className="flex items-center gap-2.5">
-          {/* Health status */}
+          {/* Developer Credit Chip */}
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-dark-900/90 border border-brand-500/30 text-xs font-mono text-slate-300 shadow-glow-sm">
+            <Code className="w-3.5 h-3.5 text-brand-400" />
+            <span>Dev: <strong className="text-white font-semibold">Shaikh Rahil Hussain</strong></span>
+            <div className="flex items-center gap-1.5 ml-1 border-l border-dark-750 pl-2">
+              <a
+                href="https://github.com/Rahil-dope"
+                target="_blank"
+                rel="noreferrer"
+                className="text-slate-400 hover:text-white transition-colors"
+                title="GitHub: Rahil-dope"
+              >
+                <Github className="w-3.5 h-3.5" />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/shaikh-rahil-hussain-a54348291"
+                target="_blank"
+                rel="noreferrer"
+                className="text-slate-400 hover:text-blue-400 transition-colors"
+                title="LinkedIn Profile"
+              >
+                <Linkedin className="w-3.5 h-3.5" />
+              </a>
+              <a
+                href="mailto:rahilhussain431601@gmail.com"
+                className="text-slate-400 hover:text-brand-400 transition-colors"
+                title="Email Developer"
+              >
+                <Mail className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Engine Health Status */}
           <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono bg-dark-900 border border-dark-750 text-slate-400">
             <div className={`w-2 h-2 rounded-full ${backendHealthy ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
             <span>{backendHealthy ? 'Engine Active' : 'Connecting...'}</span>
