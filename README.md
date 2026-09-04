@@ -14,7 +14,7 @@
 
 ---
 
-AiDoc2MD converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, Images) into LLM-optimized Markdown, eliminates OCR noise, repairs broken tables, and measures exact token savings using `tiktoken`.
+AiDoc2MD converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF, TXT) into LLM-optimized Markdown, eliminates boilerplate noise, repairs broken tables, and measures exact token savings using `tiktoken`.
 
 [Quick Start](#-quick-start) • [Architecture](#-system-architecture) • [API Reference](#-api-reference) • [Vercel Deployment](#-vercel-deployment) • [Developer](#-author--credits)
 
@@ -46,13 +46,13 @@ AiDoc2MD converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, Images) in
 
 **AiDoc2MD** is a developer-grade document ingestion and token-optimization workspace built for Retrieval-Augmented Generation (RAG), LLM context management, and document processing pipelines. 
 
-Raw text extractions from PDFs, spreadsheets, and scanned documents often contain pagination boilerplate, broken ligatures (`fi`, `fl`), unaligned table pipes, and trailing whitespace. AiDoc2MD ingests these files using **AnyDoc** (`firecrawl-anydoc` / `@firecrawl/anydoc-wasm`), applies a modular **AI Normalization Layer**, and calculates exact byte-pair token savings (`cl100k_base`) alongside a 4-pillar **AI Readiness Score (0–100)**.
+Raw text extractions from PDFs, spreadsheets, and documents often contain pagination boilerplate, broken ligatures (`fi`, `fl`), unaligned table pipes, and trailing whitespace. AiDoc2MD ingests these files using **AnyDoc** (`firecrawl-anydoc` / `@firecrawl/anydoc-wasm`), applies a modular **AI Normalization Layer**, and calculates exact byte-pair token savings (`cl100k_base`) alongside a 4-pillar **AI Readiness Score (0–100)**.
 
 ---
 
 ## 💡 Why AiDoc2MD?
 
-- **Eliminate Context Window Bloat**: Save 20%–45% of LLM prompt budgets by stripping OCR noise, page numbers, and repeating headers.
+- **Eliminate Context Window Bloat**: Save 20%–45% of LLM prompt budgets by stripping scan noise, page numbers, and repeating headers.
 - **Table Integrity**: Converts messy CSV and Excel rows into clean GitHub Flavored Markdown (GFM) tables.
 - **Authoritative Conversion with AnyDoc**: Ultra-fast native conversion across PDF, DOCX, XLSX, PPTX, CSV, EPUB, RTF, and ODF formats.
 - **Zero-Key Heuristic Fallback**: Operates out-of-the-box with a high-speed deterministic normalizer, or connects to **OpenAI GPT-4o** and **Google Gemini 1.5**.
@@ -62,7 +62,7 @@ Raw text extractions from PDFs, spreadsheets, and scanned documents often contai
 
 ## ✨ Key Features
 
-- 📂 **Multi-Format Ingestion with AnyDoc**: Ingests PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODT, ODS, ODP, TXT, and PNG/JPG images.
+- 📂 **Multi-Format Ingestion with AnyDoc**: Ingests PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODT, ODS, ODP, and TXT files.
 - 🧹 **AI Normalization Engine**: Reconstructs tables, standardizes list bullet points, normalizes heading hierarchies (`#`, `##`, `###`), and formats code blocks.
 - ⚡ **Tiktoken Precision & AI Readiness Score (0–100)**: Evaluates documents across 4 dimensions:
   1. **Structure Score (30%)**: Heading depth, valid GFM tables, code fences.
@@ -275,7 +275,7 @@ Content-Type: multipart/form-data
 ```
 | Parameter | Type | Required | Description |
 | :--- | :--- | :---: | :--- |
-| `file` | File | **Yes** | Document file (PDF, DOCX, XLSX, PPTX, CSV, TXT, Image) |
+| `file` | File | **Yes** | Document file (PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF, TXT) |
 | `title` | String | No | Custom document title |
 | `custom_ai_instructions` | String | No | Custom prompts for AI cleaner |
 | `preferred_provider` | String | No | Provider override (`auto`, `openai`, `gemini`, `heuristic`) |
@@ -333,17 +333,18 @@ cd backend
 
 **Verification Output:**
 ```
-documents/tests/test_api.py::test_document_upload_and_list PASSED        [ 11%]
-documents/tests/test_ai_cleaner.py::test_heuristic_cleaning PASSED       [ 22%]
-documents/tests/test_ai_cleaner.py::test_ai_cleaner_fallback PASSED      [ 33%]
-documents/tests/test_converter.py::test_converter_text_file PASSED       [ 44%]
-documents/tests/test_converter.py::test_converter_csv_file PASSED        [ 55%]
-documents/tests/test_converter.py::test_converter_unsupported_image_routing PASSED [ 66%]
-documents/tests/test_tokenizer.py::test_token_counting PASSED            [ 77%]
-documents/tests/test_tokenizer.py::test_token_analysis_metrics PASSED    [ 88%]
+documents/tests/test_api.py::test_document_upload_and_list PASSED        [ 10%]
+documents/tests/test_api.py::test_image_upload_rejected PASSED           [ 20%]
+documents/tests/test_ai_cleaner.py::test_heuristic_cleaning PASSED       [ 30%]
+documents/tests/test_ai_cleaner.py::test_ai_cleaner_fallback PASSED      [ 40%]
+documents/tests/test_converter.py::test_converter_text_file PASSED       [ 50%]
+documents/tests/test_converter.py::test_converter_csv_file PASSED        [ 60%]
+documents/tests/test_converter.py::test_converter_rejects_image_files PASSED [ 70%]
+documents/tests/test_tokenizer.py::test_token_counting PASSED            [ 80%]
+documents/tests/test_tokenizer.py::test_token_analysis_metrics PASSED    [ 90%]
 documents/tests/test_tokenizer.py::test_readiness_score_pillars PASSED   [100%]
 
-============================== 9 passed in 1.08s ==============================
+============================= 10 passed in 0.90s ==============================
 ```
 
 ---

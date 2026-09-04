@@ -469,6 +469,10 @@ class ApiClient {
   ): Promise<DocumentDetail> {
     let extractedText = '';
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const disallowedImages = ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'gif', 'svg', 'ico', 'heic', 'raw', 'avif'];
+    if (disallowedImages.includes(ext)) {
+      throw new Error('Image files are not supported. AiDoc2MD converts documents (PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF, TXT).');
+    }
     const supportedAnyDocFormats = ['doc', 'docx', 'odt', 'pdf', 'ppt', 'pptx', 'rtf', 'epub', 'xlsx', 'ods', 'odp', 'csv'];
 
     // Multi-format client-side parser with AnyDoc WASM primary layer

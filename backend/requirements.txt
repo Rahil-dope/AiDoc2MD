@@ -11,9 +11,6 @@ redis>=5.0.8
 # Primary Document Conversion Engine
 firecrawl-anydoc>=0.2.4
 
-# Image & Vision Handling
-pillow>=10.4.0
-
 # Tokenization & AI Normalization
 tiktoken>=0.7.0
 openai>=1.45.0

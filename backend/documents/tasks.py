@@ -18,8 +18,8 @@ def process_document_pipeline(
     """
     Main processing pipeline:
     1. Update status -> PROCESSING
-    2. DocumentConverter -> AnyDoc / Vision to extract Markdown & Raw text
-    3. AICleaner -> Normalize structure, fix tables, clean OCR noise
+    2. DocumentConverter -> AnyDoc to extract Markdown & Raw text
+    3. AICleaner -> Normalize structure, fix tables, clean scan noise
     4. TokenizerAnalyzer -> Calculate tiktoken counts, savings %, and AI Readiness Score
     5. Save results to Database -> Status COMPLETED
     """

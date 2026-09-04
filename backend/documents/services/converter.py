@@ -61,10 +61,13 @@ class DocumentConverter:
                 error="AnyDoc engine is not available in the environment."
             )
 
-        # 1. Check for Image formats (PNG, JPG, JPEG, WEBP, BMP, TIFF)
-        # AnyDoc focuses on document formats; route raw images to the Vision/Image pipeline.
-        if file_type in ('png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'gif'):
-            return self._convert_image_pipeline(file_path, file_type)
+        # 1. Reject Image Formats
+        if file_type in ('png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'gif', 'svg', 'ico', 'heic'):
+            return ConversionResult(
+                raw_extracted_text="",
+                raw_markdown="",
+                error="Image files are not supported. AiDoc2MD converts documents (PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF, TXT)."
+            )
 
         # 2. Check for Plain Text / Markdown formats (TXT, MD, LOG)
         if file_type in ('txt', 'text', 'md', 'markdown', 'log'):
@@ -152,35 +155,6 @@ class DocumentConverter:
                 raw_extracted_text="",
                 raw_markdown="",
                 error=f"AnyDoc conversion failed: {str(e)}"
-            )
-
-    def _convert_image_pipeline(self, file_path: str, file_type: str) -> ConversionResult:
-        """
-        Vision / Image pipeline for image files not processed directly by document parsers.
-        """
-        try:
-            from PIL import Image
-            img = Image.open(file_path)
-            width, height = img.size
-            img_format = img.format or file_type.upper()
-            mode = img.mode
-            filename = os.path.basename(file_path)
-            title = os.path.splitext(filename)[0]
-
-            raw_text = f"Image Document: {title}\nFormat: {img_format}\nResolution: {width}x{height}\nColor Mode: {mode}"
-            raw_markdown = f"# {title}\n\n![{filename}]({filename})\n\n**Image Metadata:**\n- **Format**: {img_format}\n- **Resolution**: {width} × {height} px\n- **Color Mode**: {mode}\n"
-
-            return ConversionResult(
-                raw_extracted_text=raw_text,
-                raw_markdown=raw_markdown,
-                metadata={"engine": "pillow_vision", "width": width, "height": height, "format": img_format}
-            )
-        except Exception as e:
-            logger.warning(f"Image pipeline failed for {file_path}: {e}")
-            return ConversionResult(
-                raw_extracted_text="",
-                raw_markdown="",
-                error=f"Failed to process image: {str(e)}"
             )
 
     def _strip_markdown_syntax(self, md_text: str) -> str:

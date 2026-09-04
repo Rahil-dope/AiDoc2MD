@@ -53,3 +53,18 @@ def test_document_upload_and_list():
     md_response = client.get(reverse('document-export-md', kwargs={'pk': doc_id}))
     assert md_response.status_code == 200
     assert 'attachment' in md_response['Content-Disposition']
+
+
+@pytest.mark.django_db
+def test_image_upload_rejected():
+    client = APIClient()
+    fake_png = SimpleUploadedFile("photo.png", b"fake-png-content", content_type="image/png")
+    response = client.post(reverse('document-upload'), {
+        'file': fake_png,
+        'title': 'Test Image'
+    }, format='multipart')
+
+    assert response.status_code == 400
+    assert 'file' in response.data
+    assert 'Image files are not supported' in str(response.data['file'])
+

@@ -5,7 +5,6 @@ import {
   FileText,
   FileSpreadsheet,
   FileCode,
-  Image as ImageIcon,
   Sparkles,
   Zap,
   ArrowRight,
@@ -39,7 +38,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     { ext: 'XLSX', name: 'Sheets & Tables', icon: <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> },
     { ext: 'PPTX', name: 'Presentations', icon: <FileText className="w-3.5 h-3.5 text-orange-400" /> },
     { ext: 'CSV', name: 'Tabular Data', icon: <FileSpreadsheet className="w-3.5 h-3.5 text-teal-400" /> },
-    { ext: 'IMG', name: 'Scans & Images', icon: <ImageIcon className="w-3.5 h-3.5 text-purple-400" /> },
+    { ext: 'TXT/MD', name: 'Plain Text & Code', icon: <FileCode className="w-3.5 h-3.5 text-violet-400" /> },
   ];
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -83,7 +82,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           </span>
         </h1>
         <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-          Upload complex multi-page PDFs, Excel workbooks, Word docs, or CSVs. Convert with Microsoft MarkItDown, eliminate OCR noise, and measure token savings with tiktoken.
+          Upload complex multi-page PDFs, Excel workbooks, Word docs, presentations, or CSVs. Convert with AnyDoc, eliminate noisy boilerplate, and measure token savings with tiktoken.
         </p>
       </div>
 
@@ -103,7 +102,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           ref={fileInputRef}
           type="file"
           onChange={handleFileChange}
-          accept=".pdf,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.csv,.txt,.md,.png,.jpg,.jpeg,.webp"
+          accept=".pdf,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.csv,.txt,.md,.epub,.rtf,.odt,.ods,.odp"
           className="hidden"
           disabled={isUploading}
         />
@@ -124,7 +123,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 {processingStage || 'Processing document...'}
               </h3>
               <p className="text-xs text-slate-400">
-                Running MarkItDown extraction, AI normalization, and token analytics.
+                Running AnyDoc conversion, AI normalization, and token analytics.
               </p>
             </div>
 
@@ -149,7 +148,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 Drop your document here, or <span className="text-brand-400 underline decoration-brand-500/50 underline-offset-4">browse</span>
               </h3>
               <p className="text-xs text-slate-400">
-                Supports PDF, DOCX, XLSX, PPTX, CSV, TXT & Images (up to 50MB)
+                Supports PDF, DOCX, XLSX, PPTX, CSV, EPUB, RTF, ODF & TXT (up to 50MB)
               </p>
             </div>
 
@@ -189,7 +188,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
               <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-brand-400 transition-transform group-hover:translate-x-0.5" />
             </div>
             <p className="text-[11px] text-slate-400 mt-1">
-              Simulates multi-page PDF with OCR headers, noisy footnotes, and code.
+              Simulates multi-page PDF with repeating headers, noisy footnotes, and code.
             </p>
           </button>
 

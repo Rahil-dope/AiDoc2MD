@@ -83,6 +83,18 @@ class DocumentUploadSerializer(serializers.Serializer):
     custom_ai_instructions = serializers.CharField(required=False, allow_blank=True)
     preferred_provider = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
+    DISALLOWED_IMAGE_EXTENSIONS = {
+        'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'gif', 'svg', 'ico', 'heic', 'raw', 'avif'
+    }
+
+    def validate_file(self, value):
+        ext = os.path.splitext(value.name)[1].lower().lstrip('.')
+        if ext in self.DISALLOWED_IMAGE_EXTENSIONS:
+            raise serializers.ValidationError(
+                "Image files are not supported. AiDoc2MD is dedicated to document conversion (PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF, TXT)."
+            )
+        return value
+
 
 class DocumentUpdateMarkdownSerializer(serializers.Serializer):
     user_edited_markdown = serializers.CharField(required=True, allow_blank=True)

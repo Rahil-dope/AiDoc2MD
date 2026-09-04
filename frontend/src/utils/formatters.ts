@@ -81,17 +81,19 @@ export function getFileTypeInfo(ext: string): { label: string; color: string; bg
       return { label: 'PPTX', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' };
     case 'csv':
       return { label: 'CSV', color: 'text-teal-400', bg: 'bg-teal-500/10 border-teal-500/20' };
-    case 'png':
-    case 'jpg':
-    case 'jpeg':
-    case 'webp':
-      return { label: 'IMAGE', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' };
+    case 'epub':
+      return { label: 'EPUB', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' };
+    case 'rtf':
+    case 'odt':
+    case 'ods':
+    case 'odp':
+      return { label: 'ODF/RTF', color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' };
     case 'html':
     case 'htm':
       return { label: 'HTML', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' };
     case 'txt':
     case 'md':
-      return { label: 'MARKDOWN', color: 'text-slate-300', bg: 'bg-slate-500/10 border-slate-500/20' };
+      return { label: 'TEXT/MD', color: 'text-slate-300', bg: 'bg-slate-500/10 border-slate-500/20' };
     default:
       return { label: normalized.toUpperCase() || 'FILE', color: 'text-slate-400', bg: 'bg-slate-500/10 border-slate-500/20' };
   }

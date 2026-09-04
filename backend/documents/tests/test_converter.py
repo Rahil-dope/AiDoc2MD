@@ -1,7 +1,6 @@
 import os
 import tempfile
 import pytest
-from PIL import Image
 from documents.services.converter import DocumentConverter
 
 
@@ -39,20 +38,19 @@ def test_converter_csv_file():
             os.remove(temp_path)
 
 
-def test_converter_unsupported_image_routing():
+def test_converter_rejects_image_files():
     converter = DocumentConverter()
     with tempfile.NamedTemporaryFile('wb', suffix='.png', delete=False) as f:
+        f.write(b'fake png bytes')
         temp_path = f.name
-        img = Image.new('RGB', (100, 100), color=(73, 109, 137))
-        img.save(temp_path, 'PNG')
 
     try:
         result = converter.convert(temp_path, "png")
-        assert result.error is None
-        assert "Image Metadata" in result.raw_markdown or "Vision Analysis" in result.raw_markdown or "Dimensions" in result.raw_markdown
-        assert result.metadata.get("engine") == "pillow_vision"
+        assert result.error is not None
+        assert "Image files are not supported" in result.error
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
+
 
 
