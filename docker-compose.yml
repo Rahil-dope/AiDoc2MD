@@ -3,25 +3,25 @@ version: '3.8'
 services:
   db:
     image: postgres:16-alpine
-    container_name: contextforge_db
+    container_name: aidoc2md_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-contextforge}
-      POSTGRES_USER: ${POSTGRES_USER:-contextforge}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-contextforge_secure_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-aidoc2md}
+      POSTGRES_USER: ${POSTGRES_USER:-aidoc2md}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aidoc2md_secure_pass}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-contextforge} -d ${POSTGRES_DB:-contextforge}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aidoc2md} -d ${POSTGRES_DB:-aidoc2md}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: contextforge_redis
+    container_name: aidoc2md_redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -35,12 +35,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: contextforge_backend
+    container_name: aidoc2md_backend
     restart: unless-stopped
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
-             gunicorn contextforge.wsgi:application --bind 0.0.0.0:8000 --workers 3 --reload"
+             gunicorn aidoc2md.wsgi:application --bind 0.0.0.0:8000 --workers 3 --reload"
     volumes:
       - ./backend:/app
       - backend_media:/app/media
@@ -48,11 +48,11 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=True
-      - SECRET_KEY=${SECRET_KEY:-django-insecure-contextforge-super-secret-key-2026}
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-aidoc2md-super-secret-key-2026}
       - ALLOWED_HOSTS=*
-      - POSTGRES_DB=${POSTGRES_DB:-contextforge}
-      - POSTGRES_USER=${POSTGRES_USER:-contextforge}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-contextforge_secure_pass}
+      - POSTGRES_DB=${POSTGRES_DB:-aidoc2md}
+      - POSTGRES_USER=${POSTGRES_USER:-aidoc2md}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-aidoc2md_secure_pass}
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -69,18 +69,18 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: contextforge_worker
+    container_name: aidoc2md_worker
     restart: unless-stopped
-    command: celery -A contextforge worker -l info --concurrency=2
+    command: celery -A aidoc2md worker -l info --concurrency=2
     volumes:
       - ./backend:/app
       - backend_media:/app/media
     environment:
       - DEBUG=True
-      - SECRET_KEY=${SECRET_KEY:-django-insecure-contextforge-super-secret-key-2026}
-      - POSTGRES_DB=${POSTGRES_DB:-contextforge}
-      - POSTGRES_USER=${POSTGRES_USER:-contextforge}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-contextforge_secure_pass}
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-aidoc2md-super-secret-key-2026}
+      - POSTGRES_DB=${POSTGRES_DB:-aidoc2md}
+      - POSTGRES_USER=${POSTGRES_USER:-aidoc2md}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-aidoc2md_secure_pass}
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -97,7 +97,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: contextforge_frontend
+    container_name: aidoc2md_frontend
     restart: unless-stopped
     ports:
       - "3000:80"

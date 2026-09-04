@@ -7,14 +7,14 @@ from documents.services.converter import DocumentConverter
 def test_converter_text_file():
     converter = DocumentConverter()
     with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False, encoding='utf-8') as f:
-        f.write("# Hello ContextForge\nThis is a sample document for testing.")
+        f.write("# Hello AiDoc2MD\nThis is a sample document for testing.")
         temp_path = f.name
 
     try:
         result = converter.convert(temp_path, "txt")
         assert result.error is None
-        assert "Hello ContextForge" in result.raw_markdown
-        assert "Hello ContextForge" in result.raw_extracted_text
+        assert "Hello AiDoc2MD" in result.raw_markdown
+        assert "Hello AiDoc2MD" in result.raw_extracted_text
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)

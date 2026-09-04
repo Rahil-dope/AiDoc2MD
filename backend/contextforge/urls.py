@@ -8,7 +8,7 @@ from django.http import JsonResponse
 def health_check(request):
     return JsonResponse({
         "status": "healthy",
-        "service": "ContextForge API",
+        "service": "AiDoc2MD API",
         "version": "1.0.0",
         "features": {
             "markitdown": True,

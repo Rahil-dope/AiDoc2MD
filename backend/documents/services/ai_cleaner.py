@@ -7,7 +7,7 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are ContextForge AI — an expert document normalization and token-optimization engine.
+SYSTEM_PROMPT = """You are AiDoc2MD AI — an expert document normalization and token-optimization engine.
 Your task is to take raw, messy extracted Markdown from documents (PDF, DOCX, XLSX, etc.) and transform it into immaculate, production-grade, token-efficient Markdown suitable for LLM context windows and RAG systems.
 
 Follow these strict rules:
@@ -233,7 +233,7 @@ class AICleaner:
         cleaned, improvements = self.heuristic_cleaner.clean(raw_markdown, custom_instructions)
         return CleanResult(
             cleaned_markdown=cleaned,
-            provider_used="ContextForge Heuristic Normalizer",
+            provider_used="AiDoc2MD Heuristic Normalizer",
             improvements_made=improvements
         )
 

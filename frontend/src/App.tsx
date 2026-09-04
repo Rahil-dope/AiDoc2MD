@@ -226,12 +226,12 @@ AI Compute & LLM API,600000,950000,910000,-4.21%,High Priority
 Security & Compliance,320000,340000,335000,-1.47%,Optimal
 `;
     } else {
-      filename = 'contextforge_architecture_rfc.docx';
-      title = 'ContextForge Architecture RFC';
-      sampleContent = `# ContextForge Architecture RFC
+      filename = 'aidoc2md_architecture_rfc.docx';
+      title = 'AiDoc2MD Architecture RFC';
+      sampleContent = `# AiDoc2MD Architecture RFC
 
 ## 1. Abstract
-ContextForge is an end-to-end document normalization and token accounting platform built for high-throughput LLM pipelines.
+AiDoc2MD is an end-to-end document normalization and token accounting platform built for high-throughput LLM pipelines.
 
 ## 2. Component Design
 - **API Gateway**: Django REST Framework
@@ -305,7 +305,7 @@ interface TokenReport {
       {/* Footer with Developer Credits */}
       <footer className="border-t border-dark-800/60 py-4 px-6 text-center text-xs font-mono text-slate-400 bg-dark-950 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto w-full">
         <div>
-          ContextForge • AI Document-to-Markdown & Token Efficiency Studio
+          AiDoc2MD • AI Document-to-Markdown & Token Efficiency Studio
         </div>
         <div className="flex items-center gap-3 text-slate-300">
           <span>Developed by <strong className="text-white">Shaikh Rahil Hussain</strong></span>

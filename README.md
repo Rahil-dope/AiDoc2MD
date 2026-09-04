@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ ContextForge
+# ⚡ AiDoc2MD
 
 **AI-Powered Document-to-Markdown Converter & Token-Efficiency Studio**
 
@@ -14,7 +14,7 @@
 
 ---
 
-ContextForge converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, Images) into LLM-optimized Markdown, eliminates OCR noise, repairs broken tables, and measures exact token savings using `tiktoken`.
+AiDoc2MD converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, Images) into LLM-optimized Markdown, eliminates OCR noise, repairs broken tables, and measures exact token savings using `tiktoken`.
 
 [Quick Start](#-quick-start) • [Architecture](#-system-architecture) • [API Reference](#-api-reference) • [Vercel Deployment](#-vercel-deployment) • [Developer](#-author--credits)
 
@@ -25,7 +25,7 @@ ContextForge converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, Images
 ## 📑 Table of Contents
 
 - [Overview](#-overview)
-- [Why ContextForge?](#-why-contextforge)
+- [Why AiDoc2MD?](#-why-aidoc2md)
 - [Key Features](#-key-features)
 - [Tech Stack](#-tech-stack)
 - [System Architecture](#-system-architecture)
@@ -44,13 +44,13 @@ ContextForge converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, Images
 
 ## 🔍 Overview
 
-**ContextForge** is a developer-grade document ingestion and token-optimization workspace built for Retrieval-Augmented Generation (RAG), LLM context management, and document processing pipelines. 
+**AiDoc2MD** is a developer-grade document ingestion and token-optimization workspace built for Retrieval-Augmented Generation (RAG), LLM context management, and document processing pipelines. 
 
-Raw text extractions from PDFs, spreadsheets, and scanned documents often contain pagination boilerplate, broken ligatures (`fi`, `fl`), unaligned table pipes, and trailing whitespace. ContextForge ingests these files using **Microsoft MarkItDown**, applies a modular **AI Normalization Layer**, and calculates exact byte-pair token savings (`cl100k_base`) alongside a 4-pillar **AI Readiness Score (0–100)**.
+Raw text extractions from PDFs, spreadsheets, and scanned documents often contain pagination boilerplate, broken ligatures (`fi`, `fl`), unaligned table pipes, and trailing whitespace. AiDoc2MD ingests these files using **Microsoft MarkItDown**, applies a modular **AI Normalization Layer**, and calculates exact byte-pair token savings (`cl100k_base`) alongside a 4-pillar **AI Readiness Score (0–100)**.
 
 ---
 
-## 💡 Why ContextForge?
+## 💡 Why AiDoc2MD?
 
 - **Eliminate Context Window Bloat**: Save 20%–45% of LLM prompt budgets by stripping OCR noise, page numbers, and repeating headers.
 - **Table Integrity**: Converts messy CSV and Excel rows into clean GitHub Flavored Markdown (GFM) tables.
@@ -109,14 +109,14 @@ flowchart TD
 ## 📁 Project Structure
 
 ```
-ContextForge/
+AiDoc2MD/
 ├── backend/
 │   ├── manage.py
 │   ├── requirements.txt
 │   ├── Dockerfile
 │   ├── pytest.ini
 │   ├── verify_demo.py               # End-to-end pipeline verification script
-│   ├── contextforge/
+│   ├── aidoc2md/
 │   │   ├── settings.py              # Django & Celery configuration
 │   │   ├── urls.py
 │   │   └── celery.py
@@ -160,8 +160,8 @@ ContextForge/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Rahil-dope/ContextForge.git
-cd ContextForge
+git clone https://github.com/Rahil-dope/AiDoc2MD.git
+cd AiDoc2MD
 
 # 2. Copy environment file
 cp .env.example .env
@@ -234,9 +234,9 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | :--- | :---: | :--- | :--- |
 | `DEBUG` | No | Django debug mode | `True` |
 | `SECRET_KEY` | No | Django secret key | `django-insecure-...` |
-| `POSTGRES_DB` | No | PostgreSQL database name | `contextforge` |
-| `POSTGRES_USER` | No | PostgreSQL username | `contextforge` |
-| `POSTGRES_PASSWORD` | No | PostgreSQL password | `contextforge_secure_pass` |
+| `POSTGRES_DB` | No | PostgreSQL database name | `aidoc2md` |
+| `POSTGRES_USER` | No | PostgreSQL username | `aidoc2md` |
+| `POSTGRES_PASSWORD` | No | PostgreSQL password | `aidoc2md_secure_pass` |
 | `POSTGRES_HOST` | No | PostgreSQL host address | `db` |
 | `CELERY_BROKER_URL` | No | Redis broker URI | `redis://redis:6379/0` |
 | `OPENAI_API_KEY` | No | (Optional) OpenAI API Key for GPT-4o cleaning | `""` |
@@ -256,7 +256,7 @@ GET /api/health/
 ```json
 {
   "status": "healthy",
-  "service": "ContextForge API",
+  "service": "AiDoc2MD API",
   "version": "1.0.0",
   "features": {
     "markitdown": true,
@@ -308,10 +308,10 @@ GET /api/documents/<uuid:id>/export/pdf/
 
 ## 🌐 Vercel Deployment
 
-ContextForge comes pre-configured with root and frontend `vercel.json` configurations for instant deployment on [Vercel](https://vercel.com).
+AiDoc2MD comes pre-configured with root and frontend `vercel.json` configurations for instant deployment on [Vercel](https://vercel.com).
 
 ### Deploy Frontend on Vercel:
-1. Import repository `Rahil-dope/ContextForge` in Vercel Dashboard.
+1. Import repository `Rahil-dope/AiDoc2MD` in Vercel Dashboard.
 2. Set Root Directory to `frontend`.
 3. Build Command: `npm run build`
 4. Output Directory: `dist`

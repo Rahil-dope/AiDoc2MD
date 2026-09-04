@@ -4,7 +4,7 @@ from documents.services.tokenizer import TokenizerAnalyzer
 
 def test_token_counting():
     analyzer = TokenizerAnalyzer()
-    text = "Hello world! This is ContextForge testing token counts."
+    text = "Hello world! This is AiDoc2MD testing token counts."
     count = analyzer.count_tokens(text)
     assert count > 0
     assert isinstance(count, int)
@@ -26,10 +26,10 @@ def test_token_analysis_metrics():
 
 def test_readiness_score_pillars():
     analyzer = TokenizerAnalyzer()
-    good_markdown = """# ContextForge System Architecture
+    good_markdown = """# AiDoc2MD System Architecture
 
 ## 1. Overview
-ContextForge provides high-performance document normalization and token reduction.
+AiDoc2MD provides high-performance document normalization and token reduction.
 
 | Component | Technology | Role |
 | --- | --- | --- |

@@ -10,7 +10,7 @@ load_dotenv(BASE_DIR.parent / '.env')
 load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-contextforge-super-secret-key-2026')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-aidoc2md-super-secret-key-2026')
 
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
@@ -73,8 +73,8 @@ if DB_NAME:
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': DB_NAME,
-            'USER': os.getenv('DB_USER', os.getenv('POSTGRES_USER', 'contextforge')),
-            'PASSWORD': os.getenv('DB_PASSWORD', os.getenv('POSTGRES_PASSWORD', 'contextforge_pass')),
+            'USER': os.getenv('DB_USER', os.getenv('POSTGRES_USER', 'aidoc2md')),
+            'PASSWORD': os.getenv('DB_PASSWORD', os.getenv('POSTGRES_PASSWORD', 'aidoc2md_pass')),
             'HOST': os.getenv('DB_HOST', os.getenv('POSTGRES_HOST', 'localhost')),
             'PORT': os.getenv('DB_PORT', os.getenv('POSTGRES_PORT', '5432')),
         }

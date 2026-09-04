@@ -104,7 +104,7 @@ class DocumentExporter:
         story = []
 
         # Add Header banner
-        story.append(Paragraph(f"<b>ContextForge</b> Export — {title}", ParagraphStyle('Sub', fontSize=8, textColor=colors.HexColor('#64748b'))))
+        story.append(Paragraph(f"<b>AiDoc2MD</b> Export — {title}", ParagraphStyle('Sub', fontSize=8, textColor=colors.HexColor('#64748b'))))
         story.append(Spacer(1, 4))
         story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#e2e8f0'), spaceAfter=14))
 

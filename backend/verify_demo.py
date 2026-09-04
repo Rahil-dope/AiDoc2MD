@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'contextforge.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'aidoc2md.settings')
 django.setup()
 
 from documents.services.converter import DocumentConverter
@@ -53,7 +53,7 @@ Page 2 of 3
     print(f"Breakdown: Structure={metrics.metrics_breakdown.get('structure_score')}/30, Cleanliness={metrics.metrics_breakdown.get('cleanliness_score')}/30, Density={metrics.metrics_breakdown.get('token_density_score')}/25, Clarity={metrics.metrics_breakdown.get('semantic_clarity_score')}/15")
     
     print("\n--- 4. Testing PDF Generation ---")
-    pdf_bytes = DocumentExporter.markdown_to_pdf_bytes(clean_res.cleaned_markdown, "ContextForge Verification Report")
+    pdf_bytes = DocumentExporter.markdown_to_pdf_bytes(clean_res.cleaned_markdown, "AiDoc2MD Verification Report")
     print(f"Generated PDF bytes: {len(pdf_bytes)} bytes")
     
     # Cleanup
