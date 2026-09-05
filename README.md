@@ -98,6 +98,12 @@ Raw text extractions from PDFs, spreadsheets, and documents often contain pagina
 
 ## 🏗️ System Architecture
 
+<p align="center">
+  <img src="BLOCK-DIAGRAM.png" alt="AiDoc2MD System Working Block Diagram" width="100%" />
+</p>
+
+### Pipeline Execution Flow
+
 ```mermaid
 flowchart TD
     User["User / React SPA"] -->|"1. Multipart Upload"| API["Django REST API (/api/documents/upload/)"]
