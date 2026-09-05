@@ -287,6 +287,7 @@ function formatCsvToMarkdown(csvText: string, fileName: string): string {
 }
 
 const OPENAI_API_KEY = (import.meta.env.VITE_OPENAI_API_KEY as string) || '';
+const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY as string) || '';
 
 // Client-side AI Normalizer & Token Engine
 async function cleanMarkdownContent(
@@ -295,20 +296,66 @@ async function cleanMarkdownContent(
   providerPreference?: string
 ): Promise<{ cleaned: string; provider: string; improvements: string[] }> {
   const provider = providerPreference || 'auto';
-  const apiKey = OPENAI_API_KEY;
+  const openaiKey = OPENAI_API_KEY;
+  const geminiKey = GEMINI_API_KEY;
 
-  // 1. Try direct OpenAI if provider is openai or auto and API key is set
-  if ((provider === 'openai' || provider === 'auto') && apiKey) {
+  const prompt = customInstructions
+    ? `User Specific Instructions:\n${customInstructions}\n\nDocument Content:\n${rawMd}`
+    : rawMd;
+
+  // 1. Try Gemini if provider is gemini or auto (Gemini is active and verified)
+  if ((provider === 'gemini' || provider === 'auto') && geminiKey) {
     try {
-      const prompt = customInstructions
-        ? `User Specific Instructions:\n${customInstructions}\n\nDocument Content:\n${rawMd}`
-        : rawMd;
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`;
+      const res = await fetch(geminiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{
+              text: 'You are AiDoc2MD AI — an expert document normalization and token-optimization engine. Transform raw extracted Markdown into clean, production-grade, token-efficient Markdown for LLM context windows. Fix headings, tables, bullets, remove pagination noise, and output ONLY the final cleaned Markdown without conversational intro or outro.'
+            }]
+          },
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 4096
+          }
+        })
+      });
 
+      if (res.ok) {
+        const data = await res.json();
+        const content = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (content) {
+          return {
+            cleaned: content,
+            provider: 'Google Gemini 3.6 Flash',
+            improvements: [
+              'Gemini AI structure normalization',
+              'Semantic heading hierarchy optimization',
+              'Token-efficient boilerplate elimination',
+              'Table structure and noise resolution'
+            ]
+          };
+        }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.warn('Gemini API call failed with status:', res.status, errJson);
+      }
+    } catch (e) {
+      console.warn('Gemini API network exception:', e);
+    }
+  }
+
+  // 2. Try direct OpenAI if provider is openai or auto and API key is set
+  if ((provider === 'openai' || provider === 'auto') && openaiKey) {
+    try {
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${openaiKey}`
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
@@ -351,9 +398,10 @@ async function cleanMarkdownContent(
     }
   }
 
-  // 2. Deterministic Heuristic Cleaner Fallback
+  // 3. Deterministic Heuristic Cleaner Fallback
   let cleanedMd = rawMd;
   const improvements: string[] = [];
+
 
   // Remove pagination noise
   if (/Page\s+\d+/i.test(cleanedMd)) {
@@ -394,8 +442,8 @@ async function cleanMarkdownContent(
 
   const providerLabel = provider === 'heuristic'
     ? 'AiDoc2MD Heuristic Normalizer'
-    : apiKey
-      ? 'AiDoc2MD Engine (OpenAI Quota Fallback)'
+    : (openaiKey || geminiKey)
+      ? 'AiDoc2MD Engine (AI Fallback Mode)'
       : 'AiDoc2MD Heuristic Normalizer';
 
   return {

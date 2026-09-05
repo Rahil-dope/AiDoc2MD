@@ -215,15 +215,16 @@ class AICleaner:
         # 2. Try Gemini if configured
         if (provider in ('gemini', 'auto')) and gemini_key:
             try:
-                cleaned = self._clean_with_gemini(raw_markdown, gemini_key, custom_instructions)
+                cleaned, model_name = self._clean_with_gemini(raw_markdown, gemini_key, custom_instructions)
                 if cleaned:
                     return CleanResult(
                         cleaned_markdown=cleaned,
-                        provider_used="Google Gemini 1.5",
+                        provider_used=f"Google Gemini ({model_name})",
                         improvements_made=[
-                            "Gemini multi-modal structure normalization",
-                            "Heading level alignment",
-                            "Whitespace & token optimization"
+                            "Gemini AI structure normalization",
+                            "Heading level hierarchy alignment",
+                            "Whitespace & token optimization",
+                            "Table alignment & noise reduction"
                         ]
                     )
             except Exception as e:
@@ -256,14 +257,28 @@ class AICleaner:
         )
         return response.choices[0].message.content.strip()
 
-    def _clean_with_gemini(self, text: str, api_key: str, custom_instructions: Optional[str]) -> str:
+    def _clean_with_gemini(self, text: str, api_key: str, custom_instructions: Optional[str]) -> Tuple[str, str]:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash", system_instruction=SYSTEM_PROMPT)
 
         prompt = text
         if custom_instructions:
             prompt = f"User Specific Instructions:\n{custom_instructions}\n\nDocument Content:\n{text}"
 
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        candidate_models = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-1.5-flash"]
+        last_err = None
+
+        for m_name in candidate_models:
+            try:
+                model = genai.GenerativeModel(m_name, system_instruction=SYSTEM_PROMPT)
+                response = model.generate_content(prompt)
+                if response and response.text:
+                    return response.text.strip(), m_name
+            except Exception as e:
+                last_err = e
+                continue
+
+        if last_err:
+            raise last_err
+        return "", "none"
+
