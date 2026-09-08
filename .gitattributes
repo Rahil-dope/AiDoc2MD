@@ -1,0 +1,130 @@
+# Set default behavior to automatically normalize line endings
+* text=auto eol=lf
+
+# ----------------------------------------------------------------------
+# Source Code
+# ----------------------------------------------------------------------
+*.py                    text eol=lf diff=python
+*.ts                    text eol=lf
+*.tsx                   text eol=lf
+*.js                    text eol=lf
+*.jsx                   text eol=lf
+*.mjs                   text eol=lf
+*.cjs                   text eol=lf
+*.rs                    text eol=lf diff=rust
+*.toml                  text eol=lf
+*.go                    text eol=lf
+*.c                     text eol=lf
+*.h                     text eol=lf
+*.cpp                   text eol=lf
+
+# ----------------------------------------------------------------------
+# Web & Styles
+# ----------------------------------------------------------------------
+*.html                  text eol=lf diff=html
+*.css                   text eol=lf diff=css
+*.scss                  text eol=lf diff=css
+*.less                  text eol=lf diff=css
+*.svg                   text eol=lf
+
+# ----------------------------------------------------------------------
+# Configuration, Data & Documentation
+# ----------------------------------------------------------------------
+*.json                  text eol=lf
+*.jsonl                 text eol=lf
+*.yaml                  text eol=lf
+*.yml                   text eol=lf
+*.xml                   text eol=lf
+*.csv                   text eol=lf
+*.tsv                   text eol=lf
+*.txt                   text eol=lf
+*.ini                   text eol=lf
+*.cfg                   text eol=lf
+*.conf                  text eol=lf
+*.md                    text eol=lf diff=markdown
+*.MD                    text eol=lf diff=markdown
+*.snap                  text eol=lf linguist-generated=true
+Dockerfile              text eol=lf
+Makefile                text eol=lf
+
+# ----------------------------------------------------------------------
+# Shell & Script Files
+# ----------------------------------------------------------------------
+*.sh                    text eol=lf
+*.bash                  text eol=lf
+*.zsh                   text eol=lf
+*.bat                   text eol=crlf
+*.cmd                   text eol=crlf
+*.ps1                   text eol=crlf
+
+# ----------------------------------------------------------------------
+# Generated & Lock Files
+# ----------------------------------------------------------------------
+package-lock.json       text eol=lf -diff linguist-generated=true
+yarn.lock               text eol=lf -diff linguist-generated=true
+pnpm-lock.yaml          text eol=lf -diff linguist-generated=true
+Cargo.lock              text eol=lf -diff linguist-generated=true
+
+# ----------------------------------------------------------------------
+# Binary Formats (Images, Fonts, Media)
+# ----------------------------------------------------------------------
+*.png                   binary
+*.jpg                   binary
+*.jpeg                  binary
+*.gif                   binary
+*.ico                   binary
+*.webp                  binary
+*.avif                  binary
+*.bmp                   binary
+*.tiff                  binary
+
+*.woff                  binary
+*.woff2                 binary
+*.ttf                   binary
+*.eot                   binary
+*.otf                   binary
+
+*.mp3                   binary
+*.mp4                   binary
+*.wav                   binary
+*.webm                  binary
+
+# ----------------------------------------------------------------------
+# Binary Documents & Archives
+# ----------------------------------------------------------------------
+*.pdf                   binary
+*.doc                   binary
+*.docx                  binary
+*.xls                   binary
+*.xlsx                  binary
+*.xlsb                  binary
+*.ppt                   binary
+*.pptx                  binary
+*.odt                   binary
+*.ods                   binary
+*.odp                   binary
+*.epub                  binary
+*.rtf                   binary
+*.wasm                  binary
+*.zip                   binary
+*.tar                   binary
+*.tar.gz                binary
+*.tgz                   binary
+*.gz                    binary
+*.7z                    binary
+*.rar                   binary
+
+# ----------------------------------------------------------------------
+# Compiled / Database Binaries
+# ----------------------------------------------------------------------
+*.db                    binary
+*.sqlite                binary
+*.sqlite3               binary
+*.pyc                   binary
+*.pyo                   binary
+*.pyd                   binary
+*.so                    binary
+*.dll                   binary
+*.dylib                 binary
+*.exe                   binary
+*.bin                   binary
