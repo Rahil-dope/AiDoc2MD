@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Header } from './components/Header';
 import { FileUploader } from './components/FileUploader';
 import { DocumentWorkspace } from './components/DocumentWorkspace';
@@ -301,6 +302,9 @@ interface TokenReport {
 
       {/* Toast Notifications */}
       <NotificationToast toasts={toasts} onDismiss={removeToast} />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
       {/* Footer with Developer Credits */}
       <footer className="border-t border-dark-800/60 py-4 px-6 text-center text-xs font-mono text-slate-400 bg-dark-950 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto w-full">
