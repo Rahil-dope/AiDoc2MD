@@ -14,7 +14,7 @@
 
 ---
 
-AiDoc2MD converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF, TXT) into LLM-optimized Markdown, eliminates boilerplate noise, repairs broken tables, and measures exact token savings using `tiktoken`.
+AiDoc2MD converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF, TXT) into LLM-optimized Markdown, eliminates boilerplate noise, repairs broken tables, and measures exact token savings using `tiktoken`.'BUILT FOR FINAL YEAR PROJECT'
 
 [Quick Start](#-quick-start) • [Architecture](#-system-architecture) • [API Reference](#-api-reference) • [Vercel Deployment](#-vercel-deployment) • [Developer](#-author--credits)
 
