@@ -4,6 +4,8 @@
 
 **AI-Powered Document-to-Markdown Converter & Token-Efficiency Studio**
 
+> BUILT FOR FINAL YEAR COLLEGE PROJECT
+
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-5.2-092E20.svg?logo=django&logoColor=white)](https://www.djangoproject.com/)
@@ -14,7 +16,7 @@
 
 ---
 
-AiDoc2MD converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF, TXT) into LLM-optimized Markdown, eliminates boilerplate noise, repairs broken tables, and measures exact token savings using `tiktoken`.'BUILT FOR FINAL YEAR PROJECT'
+AiDoc2MD converts multi-format documents (PDF, DOCX, XLSX, PPTX, CSV, RTF, EPUB, ODF, TXT) into LLM-optimized Markdown, eliminates boilerplate noise, repairs broken tables, and measures exact token savings using `tiktoken`.
 
 [Quick Start](#-quick-start) • [Architecture](#-system-architecture) • [API Reference](#-api-reference) • [Vercel Deployment](#-vercel-deployment) • [Developer](#-author--credits)
 
